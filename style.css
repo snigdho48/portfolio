@@ -605,6 +605,11 @@ body:not(.user-is-tabbing) a:focus {
     width: 84px;
     transform: translateY(3px);
 }
+.decoration {
+    text-decoration: none;
+    
+
+}
 
 @media(max-width: 500px) {
     .footer {
