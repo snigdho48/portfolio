@@ -32,7 +32,7 @@ export default function TestimonialSlider() {
       navigation
       pagination={{ clickable: true }}
       modules={[Navigation, Pagination]}
-      className="h-[320px] xl:h-[360px]"
+      className="h-[400px]"
     >
       {testimonialData.map((person, i) => (
         <SwiperSlide key={i}>

@@ -1,35 +1,26 @@
+import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import TestimonialSlider from "@/components/TestimonialSlider";
-import { useFadeIn } from "@/hooks/useFadeIn";
+import { fadeIn } from "@/variants";
 
 export default function Testimonials() {
-  const titleRef  = useFadeIn<HTMLHeadingElement>("up", 0.2);
-  const sliderRef = useFadeIn<HTMLDivElement>("up",     0.4);
-
   return (
-    <div className="page-root bg-primary/30 text-center">
+    <div className="h-full bg-primary/30 py-32 text-center">
       <Helmet>
         <title>Snigdho | Testimonials</title>
         <meta name="description" content="What colleagues and clients say about Snigdho." />
       </Helmet>
 
-      {/* header clearance */}
-      <div className="h-[90px] flex-shrink-0" />
-
-      {/* content */}
-      <div className="page-body flex-col justify-center">
-        <div className="container mx-auto xl:pr-24 w-full">
-          <h2 ref={titleRef} className="h2 !mb-6 text-white">
-            What clients<span className="text-accent"> say.</span>
+      <div className="container mx-auto h-full flex flex-col justify-center">
+        <motion.div variants={fadeIn("up", 0.2)} initial="hidden" animate="show" exit="hidden">
+          <h2 className="h2 mb-8 xl:mb-0">
+            What clients <span className="text-accent">say.</span>
           </h2>
-          <div ref={sliderRef}>
-            <TestimonialSlider />
-          </div>
-        </div>
+        </motion.div>
+        <motion.div variants={fadeIn("up", 0.4)} initial="hidden" animate="show" exit="hidden">
+          <TestimonialSlider />
+        </motion.div>
       </div>
-
-      {/* mobile nav clearance */}
-      <div className="h-20 xl:h-4 flex-shrink-0" />
     </div>
   );
 }

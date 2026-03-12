@@ -1,23 +1,18 @@
+import { Link } from "react-router-dom";
 import { HiArrowRight } from "react-icons/hi2";
-import { useTransition } from "@/context/TransitionContext";
 
 export default function ProjectsBtn() {
-  const { navigateTo } = useTransition();
-
   return (
     <div className="mx-auto xl:mx-0">
-      <button
-        type="button"
-        onClick={() => navigateTo("/work")}
-        onFocus={(e) => e.currentTarget.blur()}
-        tabIndex={-1}
+      <Link
+        to="/work"
         aria-label="View my projects"
-        className="relative w-[185px] h-[185px] flex justify-center items-center bg-circle-star bg-cover bg-center bg-no-repeat group cursor-pointer border-0 bg-transparent"
+        className="relative w-[185px] h-[185px] flex justify-center items-center bg-circle-star bg-cover bg-center bg-no-repeat group block"
       >
-        {/* spinning text ring */}
+        {/* spinning text ring — same size as modern-portfolio */}
         <svg
           viewBox="0 0 148 148"
-          className="animate-spin-slow w-full h-full max-w-[141px] max-h-[141px] pointer-events-none select-none absolute"
+          className="animate-spin-slow w-full h-full max-w-[141px] max-h-[148px] pointer-events-none select-none absolute"
           aria-hidden
         >
           <defs>
@@ -33,7 +28,7 @@ export default function ProjectsBtn() {
           className="absolute text-4xl group-hover:translate-x-2 transition-all duration-300"
           aria-hidden
         />
-      </button>
+      </Link>
     </div>
   );
 }

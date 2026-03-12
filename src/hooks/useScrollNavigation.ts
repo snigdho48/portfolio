@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
-import { useTransition } from "@/context/TransitionContext";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const ROUTES = [
   "/",
@@ -17,29 +16,28 @@ const MIN_DELTA = 30;
 const MIN_SWIPE = 60;
 
 export function useScrollNavigation() {
-  const { pathname }              = useLocation();
-  const { navigateTo, isAnimating } = useTransition();
-  const touchStartY               = useRef(0);
-  const lastTrigger               = useRef(0);
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const touchStartY = useRef(0);
+  const lastTrigger = useRef(0);
 
   useEffect(() => {
     const COOLDOWN = 1400; // ms – matches transition duration
 
     const canNavigate = () => {
-      if (isAnimating.current) return false;
       if (Date.now() - lastTrigger.current < COOLDOWN) return false;
       return true;
     };
 
     const go = (dir: "next" | "prev") => {
       if (!canNavigate()) return;
-      const idx  = ROUTES.indexOf(pathname);
+      const idx = ROUTES.indexOf(pathname);
       const next = dir === "next"
         ? Math.min(idx + 1, ROUTES.length - 1)
         : Math.max(idx - 1, 0);
       if (next === idx) return;
       lastTrigger.current = Date.now();
-      navigateTo(ROUTES[next]);
+      navigate(ROUTES[next]);
     };
 
     const onWheel = (e: WheelEvent) => {
@@ -86,5 +84,5 @@ export function useScrollNavigation() {
       window.removeEventListener("touchend",   onTouchEnd,   { capture: true });
       window.removeEventListener("keydown",    onKeyDown,    { capture: true });
     };
-  }, [pathname, navigateTo, isAnimating]);
+  }, [pathname, navigate]);
 }

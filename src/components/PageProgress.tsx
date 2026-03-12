@@ -1,5 +1,4 @@
-import { useLocation } from "react-router-dom";
-import { useTransition } from "@/context/TransitionContext";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const ROUTES = [
   { path: "/",             label: "Home"         },
@@ -11,9 +10,9 @@ const ROUTES = [
 ];
 
 export default function PageProgress() {
-  const { pathname }  = useLocation();
-  const { navigateTo } = useTransition();
-  const currentIndex  = ROUTES.findIndex((r) => r.path === pathname);
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const currentIndex = ROUTES.findIndex((r) => r.path === pathname);
 
   return (
     <div className="fixed left-4 xl:left-6 top-1/2 -translate-y-1/2 z-40 flex-col gap-y-3 hidden md:flex">
@@ -21,7 +20,7 @@ export default function PageProgress() {
         <button
           key={route.path}
           type="button"
-          onClick={() => navigateTo(route.path)}
+          onClick={() => navigate(route.path)}
           onFocus={(e) => e.currentTarget.blur()}
           tabIndex={-1}
           aria-label={route.label}
