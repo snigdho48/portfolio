@@ -3,161 +3,426 @@ import {
   RiLinkedinLine,
   RiMailLine,
 } from "react-icons/ri";
-import {
-  HiCode,
-  HiServer,
-  HiDeviceMobile,
-  HiCloud,
-  HiTerminal,
-} from "react-icons/hi";
-import {
-  FaPython,
-  FaReact,
-  FaNodeJs,
-  FaDocker,
-  FaAws,
-  FaGitAlt,
-} from "react-icons/fa";
-import {
-  SiDjango,
-  SiFlask,
-  SiTypescript,
-  SiPostgresql,
-  SiMysql,
-  SiMongodb,
-  SiRedis,
-  SiTailwindcss,
-  SiFlutter,
-} from "react-icons/si";
 import type { IconType } from "react-icons";
+
+/** Placeholder marker — replace before launch */
+export const PLACEHOLDER = "[PLACEHOLDER]" as const;
+
+/** Override at build/deploy with VITE_SITE_URL */
+export const siteUrl =
+  (typeof import.meta !== "undefined" &&
+    (import.meta.env?.VITE_SITE_URL as string | undefined)) ||
+  "https://snigdho48.github.io";
 
 export const siteConfig = {
   name: "MD. Atiquzzaman Snigdho",
   shortName: "Snigdho",
   title: "Software Engineer",
-  tagline: "Backend Systems · Full-Stack · Cloud",
+  tagline: "Full-Stack Development | Cloud Solutions",
   email: "atiquzzamansnigdho@gmail.com",
   phone: "+880 1775350203",
   location: "Mohammodpur, Dhaka, Bangladesh",
   linkedin: "https://linkedin.com/in/atiquzzamansnigdho",
-  github: "https://github.com/atiquzzamansnigdho",
-  bio: "Software Engineer with 3+ years of experience building and maintaining production-grade backend systems. Specialized in Django, React, REST APIs, background processing, mobile apps with Flutter and data-intensive applications.",
+  github: "https://github.com/snigdho48",
+  cvPath: "/cv/MD.Atiquzzaman_Snigdho.pdf",
+  ogImage: "/og-image.webp",
+  avatar: "/avatar.webp",
+  siteUrl,
+  bio: "Software Engineer with 3 years of experience designing, building, and maintaining production-grade backend systems. Specialized in React, Python, Django, REST APIs, background processing, mobile apps with Flutter and data-intensive applications. Strong ownership of core services, database design, performance optimization, and system reliability. Actively mentor junior engineers and enforce clean architecture and backend best practices.",
+  headline: "Building production\nbackend systems.",
+  availability: "Open to full-time and contract opportunities",
+  now: {
+    role: "Software Engineer - A Maze Venture",
+    location: "Dhaka, Bangladesh",
+    status: "Open to work",
+  },
+  howIWork: [
+    "Own production backend systems end-to-end - APIs, workers, data models, and deploys.",
+    "Mentor junior engineers through code reviews, architecture guidance, and clean backend standards.",
+    "Translate product and ops workflows into reliable services that stay fast under concurrent load.",
+  ],
 } as const;
 
-export const stats = [
-  { end: 3, suffix: "+", label: "Years of experience" },
-  { end: 5, suffix: "+", label: "Production projects" },
-  { end: 3, suffix: "", label: "Companies worked" },
-  { end: 1, suffix: "", label: "CS Degree" },
+export const socialData: Array<{
+  name: string;
+  link: string;
+  Icon: IconType;
+}> = [
+  { name: "GitHub", link: siteConfig.github, Icon: RiGithubLine },
+  { name: "LinkedIn", link: siteConfig.linkedin, Icon: RiLinkedinLine },
+  { name: "Email", link: `mailto:${siteConfig.email}`, Icon: RiMailLine },
+];
+
+export const navSections = [
+  { id: "hero", label: "Home" },
+  { id: "work", label: "Work" },
+  { id: "experience", label: "Experience" },
+  { id: "skills", label: "Skills" },
+  { id: "about", label: "About" },
+  { id: "contact", label: "Contact" },
 ] as const;
+
+export type ExperienceItem = {
+  role: string;
+  company: string;
+  location: string;
+  period: string;
+  bullets: string[];
+};
+
+export const experience: ExperienceItem[] = [
+  {
+    role: "Software Engineer",
+    company: "A Maze Venture",
+    location: "Niketon, Gulshan",
+    period: "09/2023 - Present",
+    bullets: [
+      "Core backend engineer for Braincount, an enterprise campaign monitoring and analytics platform.",
+      "Designed Django REST APIs for campaign management, monitoring logs, assets, and reporting.",
+      "Built background workers using Celery and Redis for data processing and scheduled tasks.",
+      "Optimized database queries and indexes to handle large monitoring datasets efficiently.",
+      "Ensured API performance, stability, and scalability across concurrent campaigns.",
+      "Directed and supported junior developers using modern frameworks such as Angular and Node.js.",
+      "Collaborated with frontend, product, and operations teams to translate business workflows into backend services.",
+      "Reviewed code, guided junior developers, and enforced backend engineering standards.",
+      "Supported production deployments and monitored live systems on Linux servers.",
+    ],
+  },
+  {
+    role: "Junior Software Engineer",
+    company: "Mysoftheaven",
+    location: "Pirerbag, Mirpur-2",
+    period: "02/2023 - 08/2023",
+    bullets: [
+      "Developed mobile apps.",
+      "Integrated backend services with Flutter mobile apps.",
+      "Improved application performance and data consistency.",
+      "Participated in testing, deployment, and production support.",
+    ],
+  },
+  {
+    role: "Software Engineer Intern",
+    company: "Machine Xtreme LLC",
+    location: "Mirpur-10",
+    period: "06/2018 - 11/2018",
+    bullets: [
+      "Developed mobile apps.",
+      "Integrated backend services with Flutter mobile apps.",
+      "Improved application performance and data consistency.",
+      "Contributed to a customer support chatbot using AI technologies, enhancing customer service response times by 40%.",
+    ],
+  },
+];
 
 export type SkillGroup = {
   title: string;
-  icons: IconType[];
+  items: string[];
 };
 
-export type AboutTab = {
-  title: string;
-  info: Array<{ title: string; stage?: string; icons?: IconType[] }>;
-};
-
-export const aboutData: AboutTab[] = [
+export const skillGroups: SkillGroup[] = [
   {
-    title: "skills",
-    info: [
-      { title: "Backend", icons: [FaPython, SiDjango, SiFlask, FaNodeJs] },
-      { title: "Frontend", icons: [FaReact, SiTypescript, SiTailwindcss] },
-      { title: "Mobile", icons: [SiFlutter] },
-      { title: "Databases", icons: [SiPostgresql, SiMysql, SiMongodb, SiRedis] },
-    ],
+    title: "System Architecture & Design",
+    items: ["Microservices", "API design", "Database modeling", "Scalability planning"],
   },
   {
-    title: "experience",
-    info: [
-      { title: "Software Engineer — A Maze Venture", stage: "09/2023 – Present" },
-      { title: "Junior Software Engineer — Mysoftheaven", stage: "02/2023 – 08/2023" },
-      { title: "Intern — Machine Xtreme LLC", stage: "2018 – 2021" },
-    ],
-  },
-  {
-    title: "credentials",
-    info: [
-      { title: "B.Sc in Computer Science & Engineering — Daffodil International University", stage: "01/2018 – 01/2022" },
-      { title: "GPA: 3.12 / 4.0", stage: "" },
-    ],
-  },
-];
-
-export const services = [
-  {
-    Icon: HiServer,
     title: "Backend Development",
-    description: "Scalable REST/GraphQL APIs with Django, Flask or Node.js. Background processing with Celery & Redis.",
+    items: ["Django", "Flask", "Node.js / Express", "REST", "GraphQL"],
   },
   {
-    Icon: HiCode,
-    title: "Full-Stack Development",
-    description: "End-to-end web applications using React, TypeScript, Tailwind CSS paired with Python backends.",
+    title: "Frontend Technologies",
+    items: ["React.js", "TypeScript", "Responsive UI/UX", "Redux", "Tailwind CSS", "Material UI", "Chakra UI"],
   },
   {
-    Icon: HiDeviceMobile,
     title: "Mobile Development",
-    description: "Cross-platform mobile apps with Flutter/Dart, integrated with robust backend services.",
+    items: ["Flutter / Dart", "Cross-platform apps", "Firebase", "GetX"],
   },
   {
-    Icon: HiTerminal,
-    title: "API Design & Architecture",
-    description: "Designing RESTful and GraphQL APIs with authentication, rate limiting, and high-performance patterns.",
+    title: "Data & Performance",
+    items: ["PostgreSQL", "MySQL", "MongoDB", "Redis", "Caching", "Query optimization"],
   },
   {
-    Icon: HiCloud,
     title: "Cloud & DevOps",
-    description: "CI/CD pipelines, Docker containers, AWS deployment, DigitalOcean, Nginx configuration.",
+    items: ["AWS (EC2, S3, RDS)", "Docker", "Nginx", "DigitalOcean", "GitLab CI/CD", "Linux"],
+  },
+  {
+    title: "Leadership & Mentorship",
+    items: ["Code reviews", "Junior developer coaching", "Agile practices"],
   },
 ];
 
-export type ProjectImage = {
+export const education = {
+  degree: "B.Sc in Computer Science & Engineering",
+  school: "Daffodil International University (DIU)",
+  period: "01/2018 - 01/2022",
+  location: "Dhaka",
+  gpa: "3.12 / 4.0",
+} as const;
+
+export const languages = [
+  { name: "Bangla", level: "Native" },
+  { name: "English", level: "Advanced" },
+] as const;
+
+export type ProjectNodeId =
+  | "api"
+  | "worker"
+  | "db"
+  | "cache"
+  | "realtime"
+  | "mobile"
+  | "cloud";
+
+export type ProjectScreenshot = {
+  src: string;
+  alt: string;
+  isPlaceholder: boolean;
+  /** Image already contains its own device frame / marketing mock-up: never wrap it in another frame. */
+  framed?: boolean;
+};
+
+export type Project = {
+  slug: string;
   title: string;
-  color: string;
-  link: string;
+  liveUrl: string;
+  purpose: string;
+  contributions: string[];
+  stack: string[];
+  nodeIds: ProjectNodeId[];
+  screenshots: ProjectScreenshot[];
+  contributionsArePlaceholder?: boolean;
 };
 
-export const workSlides = {
-  slides: [
-    {
-      images: [
-        { title: "Braincount", color: "#1a1a2e", link: "https://braincount.net/" },
-        { title: "Papercable", color: "#16213e", link: "https://papercable.com/" },
-        { title: "Chobirbaksho", color: "#0f3460", link: "https://chobirbaksho.com" },
-        { title: "Omnichannel", color: "#1a1a2e", link: "https://omni.reachableads.com/" },
-      ],
-    },
-    {
-      images: [
-        { title: "DBID App", color: "#16213e", link: "https://play.google.com/store/apps/details?id=com.mysoftheaven.dbid" },
-        { title: "API Platform", color: "#0f3460", link: "#" },
-        { title: "Analytics Dashboard", color: "#1a1a2e", link: "#" },
-        { title: "Backend Systems", color: "#16213e", link: "#" },
-      ],
-    },
-  ],
-};
+export function placeholderShots(
+  slug: string,
+  title: string,
+  count = 3,
+): ProjectScreenshot[] {
+  return Array.from({ length: count }, (_, i) => ({
+    src: `/projects/placeholders/${slug}-${i + 1}.svg`,
+    alt: `[PLACEHOLDER] ${title} screenshot ${i + 1} of ${count} - replace with real capture`,
+    isPlaceholder: true,
+  }));
+}
 
-export const projectDescriptions: Record<string, string> = {
-  "Braincount": "Bangladesh's first OOH advertising intelligence platform. Django APIs, Celery, Redis.",
-  "Papercable": "Data-driven PR & media outreach tool. Django, MySQL, React, analytics pipelines.",
-  "Chobirbaksho": "AI-assisted content creation. Celery, Socket.io, REST APIs, React.",
-  "Omnichannel": "Multi-channel marketing dashboard. Django, MySQL, React, real-time monitoring.",
-  "DBID App": "Secure digital identity app. Flutter, Firebase, authentication & push notifications.",
-  "API Platform": "REST/GraphQL API design & development for enterprise clients.",
-  "Analytics Dashboard": "Real-time analytics dashboards with data visualization.",
-  "Backend Systems": "High-performance backend systems with Django & PostgreSQL.",
-};
+export function realShots(
+  slug: string,
+  title: string,
+  count: number,
+  framed = false,
+): ProjectScreenshot[] {
+  return Array.from({ length: count }, (_, i) => ({
+    src: `/projects/${slug}/frame-${i + 1}.webp`,
+    alt: `${title} screenshot ${i + 1}`,
+    isPlaceholder: false,
+    ...(framed ? { framed: true } : {}),
+  }));
+}
 
-export const socialData = [
-  { name: "GitHub",   link: siteConfig.github,   Icon: RiGithubLine },
-  { name: "LinkedIn", link: siteConfig.linkedin,  Icon: RiLinkedinLine },
-  { name: "Email",    link: `mailto:${siteConfig.email}`, Icon: RiMailLine },
+export const projects: Project[] = [
+  {
+    slug: "braincount",
+    title: "Braincount",
+    liveUrl: "https://braincount.net/",
+    purpose:
+      "Outdoor audience measurement, asset monitoring, and OOH planning platform using location data, IoT, and AI to measure real billboard visibility.",
+    contributions: [
+      "Co-developed Bangladesh's first data-driven OOH advertising intelligence platform.",
+      "Designed and implemented backend services to process location-based and IoT-derived campaign data.",
+      "Built RESTful APIs for campaign configuration, monitoring, and analytics reporting.",
+      "Implemented background data processing pipelines using Celery and Redis.",
+      "Developed analytics services to measure audience exposure, campaign reach, and ROI.",
+      "Ensured real-time performance analytics for ongoing campaigns.",
+      "Optimized database schemas and queries to support large datasets and concurrent campaigns.",
+      "Supported production deployments and monitored live systems.",
+      "Collaborated with frontend and operations teams to convert business requirements into backend services.",
+    ],
+    stack: [
+      "Python",
+      "Django",
+      "React",
+      "Django REST Framework",
+      "MySQL",
+      "Celery",
+      "Redis",
+      "DigitalOcean",
+    ],
+    nodeIds: ["api", "worker", "db", "cache", "cloud"],
+    screenshots: realShots("braincount", "Braincount", 3),
+  },
+  {
+    slug: "papercable",
+    title: "Papercable",
+    liveUrl: "https://papercable.com/",
+    purpose:
+      "Data-driven PR platform with real-time analytics and publishing for tracking media engagement and campaign effectiveness.",
+    contributions: [
+      "Engineered analytics pipelines to collect and process media engagement data.",
+      "Built backend APIs to support campaign tracking and reporting dashboards.",
+      "Designed database models to store campaign performance and outreach metrics.",
+      "Integrated backend services with frontend dashboards for real-time insights.",
+      "Enabled data-backed decision-making for PR and media strategies.",
+      "Designed frontend and implemented APIs.",
+    ],
+    stack: ["Django", "MySQL", "REST APIs", "React", "Material UI"],
+    nodeIds: ["api", "db", "cloud"],
+    screenshots: realShots("papercable", "Papercable", 3),
+  },
+  {
+    // Added at the user's explicit request (not on the CV). Facts below come from the public Google Play listing
+    // (com.maaty.app, publisher "maaty by Eurostar"); everything else is a [PLACEHOLDER].
+    slug: "maaty",
+    title: "Maaty",
+    liveUrl: "https://play.google.com/store/apps/details?id=com.maaty.app&hl=en",
+    purpose:
+      "Your smart AI shopping agent for groceries, Q Coins, deals and savings in Qatar (Android app, from the Google Play listing).",
+    contributions: [
+      "[PLACEHOLDER] Contribution bullet 1 - replace with your Maaty work.",
+      "[PLACEHOLDER] Contribution bullet 2 - replace with your Maaty work.",
+      "[PLACEHOLDER] Contribution bullet 3 - replace with your Maaty work.",
+    ],
+    stack: ["[PLACEHOLDER]", "Android"],
+    nodeIds: ["mobile"],
+    contributionsArePlaceholder: true,
+    screenshots: realShots("maaty", "Maaty", 6, true),
+  },
+  {
+    slug: "chobirbaksho",
+    title: "Chobirbaksho",
+    liveUrl: "https://chobirbaksho.com",
+    purpose:
+      "An AI-assisted digital media platform designed to accelerate content production through automated image, video, and audio processing.",
+    contributions: [
+      "Built backend services to support automated content processing workflows.",
+      "Integrated asynchronous task execution using Celery for media processing.",
+      "Implemented real-time communication features using Socket.io.",
+      "Designed backend APIs to manage content assets and processing states.",
+      "Improved content production efficiency through backend automation.",
+    ],
+    stack: [
+      "Django",
+      "Celery",
+      "Redis",
+      "Socket.io",
+      "REST APIs",
+      "React",
+      "Tailwind CSS",
+    ],
+    nodeIds: ["api", "worker", "cache", "realtime"],
+    screenshots: placeholderShots("chobirbaksho", "Chobirbaksho"),
+  },
+  {
+    slug: "omnichannel",
+    title: "Omnichannel",
+    liveUrl: "https://omni.reachableads.com/",
+    purpose:
+      "Monitor all campaign accounts in one place - a centralized dashboard for multi-channel campaign visibility.",
+    contributions: [
+      "Developed frontend and backend services for campaign planning, execution, and tracking.",
+      "Built APIs to aggregate performance data from multiple channels.",
+      "Implemented real-time performance monitoring for active campaigns.",
+      "Optimized backend workflows to support scalable, concurrent campaign operations.",
+      "Collaborated with frontend teams to deliver end-to-end campaign management tools.",
+    ],
+    stack: ["Django", "MySQL", "REST APIs", "React", "Tailwind CSS"],
+    nodeIds: ["api", "db", "realtime", "cloud"],
+    screenshots: realShots("omnichannel", "Omnichannel", 1),
+  },
+  {
+    slug: "dbid",
+    title: "DBID",
+    liveUrl:
+      "https://play.google.com/store/apps/details?id=com.mysoftheaven.dbid&hl=en",
+    purpose:
+      "A secure digital identity solution enabling users to manage personal information and application processes safely.",
+    contributions: [
+      "Developed backend modules for authentication and account verification.",
+      "Designed secure data storage and access mechanisms.",
+      "Integrated backend services with Flutter-based mobile frontend.",
+      "Contributed to application tracking and identity verification workflows.",
+      "Ensured data integrity and security best practices.",
+    ],
+    stack: [
+      "Flutter",
+      "Firebase",
+      "Authentication Systems",
+      "Push Notifications",
+      "GetX",
+    ],
+    nodeIds: ["mobile", "api", "cloud"],
+    screenshots: realShots("dbid", "DBID", 4),
+  },
+  {
+    slug: "authentica",
+    title: "Authentica",
+    liveUrl: "https://authentiqa.net/",
+    purpose:
+      "Authentica - production platform at authentiqa.net. [PLACEHOLDER: expand purpose from product brief when available.]",
+    contributions: [
+      "[PLACEHOLDER] Contribution bullet 1 - replace with your Authentica work.",
+      "[PLACEHOLDER] Contribution bullet 2 - replace with your Authentica work.",
+      "[PLACEHOLDER] Contribution bullet 3 - replace with your Authentica work.",
+    ],
+    stack: ["[PLACEHOLDER]", "Django", "React"],
+    nodeIds: ["api", "db", "cloud"],
+    contributionsArePlaceholder: true,
+    screenshots: realShots("authentica", "Authentica", 1),
+  },
+  {
+    slug: "pr-tools",
+    title: "PR Tools",
+    liveUrl: "https://prtools.reachableads.com",
+    purpose:
+      "PR Tools - production platform at prtools.reachableads.com. [PLACEHOLDER: expand purpose from product brief when available.]",
+    contributions: [
+      "[PLACEHOLDER] Contribution bullet 1 - replace with your PR Tools work.",
+      "[PLACEHOLDER] Contribution bullet 2 - replace with your PR Tools work.",
+      "[PLACEHOLDER] Contribution bullet 3 - replace with your PR Tools work.",
+    ],
+    stack: ["[PLACEHOLDER]", "Django", "React"],
+    nodeIds: ["api", "db", "worker"],
+    contributionsArePlaceholder: true,
+    screenshots: realShots("pr-tools", "PR Tools", 1),
+  },
 ];
 
-export const techStack = [FaPython, SiDjango, FaReact, SiTypescript, FaNodeJs, SiFlutter, SiPostgresql, SiRedis, FaDocker, FaAws, FaGitAlt];
+export const graphNodes: Array<{
+  id: ProjectNodeId;
+  label: string;
+  x: number;
+  y: number;
+}> = [
+  { id: "api", label: "API", x: 50, y: 22 },
+  { id: "worker", label: "Workers", x: 78, y: 38 },
+  { id: "db", label: "DB", x: 72, y: 68 },
+  { id: "cache", label: "Cache", x: 42, y: 78 },
+  { id: "realtime", label: "Realtime", x: 18, y: 58 },
+  { id: "mobile", label: "Mobile", x: 16, y: 30 },
+  { id: "cloud", label: "Cloud", x: 50, y: 48 },
+];
+
+export const graphEdges: Array<[ProjectNodeId, ProjectNodeId]> = [
+  ["api", "cloud"],
+  ["api", "db"],
+  ["api", "cache"],
+  ["worker", "cache"],
+  ["worker", "db"],
+  ["realtime", "api"],
+  ["mobile", "api"],
+  ["cloud", "db"],
+];
+
+export function getProjectBySlug(slug: string): Project | undefined {
+  return projects.find((p) => p.slug === slug);
+}
+
+export function getAdjacentProjects(slug: string): {
+  prev?: Project;
+  next?: Project;
+} {
+  const i = projects.findIndex((p) => p.slug === slug);
+  if (i < 0) return {};
+  return {
+    prev: projects[i - 1],
+    next: projects[i + 1],
+  };
+}

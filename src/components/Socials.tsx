@@ -7,11 +7,8 @@ export default function Socials() {
     <div className="flex items-center gap-x-5 text-lg">
       {socialData.map((social) => {
         const isInternal = social.link.startsWith("/");
-        const className = `${
-          social.name === "GitHub"
-            ? "bg-accent rounded-full p-[5px] hover:text-white"
-            : "hover:text-accent"
-        } transition-all duration-300`;
+        const className =
+          "hover:text-accent transition-colors duration-300 text-[color:var(--text-muted)]";
         if (isInternal) {
           return (
             <Link

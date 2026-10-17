@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
-import Header from "./Header";
-import Nav from "./Nav";
-import TopLeftImg from "./TopLeftImg";
+import SiteNav from "./SiteNav";
+import DeferredChrome from "./DeferredChrome";
 
 interface LayoutProps {
   children: ReactNode;
@@ -9,11 +8,13 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <main className="page bg-site bg-cover bg-no-repeat font-sora relative text-white">
-      <TopLeftImg />
-      <Nav />
-      <Header />
-      {children}
-    </main>
+    <div className="site-shell font-sans">
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
+      <SiteNav />
+      <main id="main-content">{children}</main>
+      <DeferredChrome />
+    </div>
   );
 }

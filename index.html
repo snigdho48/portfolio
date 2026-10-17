@@ -1,19 +1,67 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="MD. Atiquzzaman Snigdho — Software Engineer specializing in Django, React, Python, Full-Stack & Cloud systems." />
-    <meta name="keywords" content="software engineer, full-stack, django, react, python, backend, cloud, portfolio, dhaka, bangladesh" />
+    <meta
+      name="description"
+      content="MD. Atiquzzaman Snigdho — Software Engineer specializing in Django, React, Python, Full-Stack and Cloud systems."
+    />
+    <meta
+      name="keywords"
+      content="software engineer, full-stack, django, react, python, backend, cloud, portfolio, dhaka, bangladesh"
+    />
     <meta name="author" content="MD. Atiquzzaman Snigdho" />
-    <meta name="theme-color" content="#F13024" />
+    <meta name="theme-color" content="#0a0c0f" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="canonical" href="https://snigdho48.github.io/" />
+
     <meta property="og:title" content="MD. Atiquzzaman Snigdho | Software Engineer" />
-    <meta property="og:description" content="Software Engineer with 3+ years building production-grade backend systems." />
+    <meta
+      property="og:description"
+      content="Software Engineer with 3+ years building production-grade backend systems."
+    />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://snigdho48.github.io/" />
+    <meta property="og:image" content="https://snigdho48.github.io/og-image.webp" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="MD. Atiquzzaman Snigdho | Software Engineer" />
+    <meta
+      name="twitter:description"
+      content="Software Engineer with 3+ years building production-grade backend systems."
+    />
+    <meta name="twitter:image" content="https://snigdho48.github.io/og-image.webp" />
+
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="apple-touch-icon" href="/og-image.webp" />
+    <link
+      rel="preload"
+      href="/fonts/syne-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("snigdho-theme");
+          var theme =
+            stored === "light" || stored === "dark" ? stored : "dark";
+          document.documentElement.setAttribute("data-theme", theme);
+          document.documentElement.style.colorScheme = theme;
+        } catch (_) {}
+      })();
+    </script>
     <title>Snigdho | Software Engineer</title>
   </head>
   <body>

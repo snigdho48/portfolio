@@ -1,52 +1,37 @@
+import { lazy, Suspense, useEffect } from "react";
 import { useRoutes, useLocation } from "react-router-dom";
-import { useEffect } from "react";
-import { AnimatePresence } from "framer-motion";
 import Layout from "@/components/Layout";
-import Transition from "@/components/Transition";
-import { useScrollNavigation } from "@/hooks/useScrollNavigation";
-import Home from "@/pages/Home";
-import About from "@/pages/About";
-import Services from "@/pages/Services";
-import Work from "@/pages/Work";
-import Testimonials from "@/pages/Testimonials";
-import Contact from "@/pages/Contact";
+import Landing from "@/pages/Landing";
+
+const CaseStudy = lazy(() => import("@/pages/CaseStudy"));
 
 function ScrollReset() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-  return null;
-}
-
-function ScrollNavigator() {
-  useScrollNavigation();
+    if (!hash) window.scrollTo(0, 0);
+  }, [pathname, hash]);
   return null;
 }
 
 const routes = [
-  { path: "/", element: <Home /> },
-  { path: "/about", element: <About /> },
-  { path: "/services", element: <Services /> },
-  { path: "/work", element: <Work /> },
-  { path: "/testimonials", element: <Testimonials /> },
-  { path: "/contact", element: <Contact /> },
+  { path: "/", element: <Landing /> },
+  {
+    path: "/work/:slug",
+    element: (
+      <Suspense fallback={null}>
+        <CaseStudy />
+      </Suspense>
+    ),
+  },
 ];
 
 export default function App() {
-  const location = useLocation();
   const element = useRoutes(routes);
 
   return (
     <Layout>
       <ScrollReset />
-      <ScrollNavigator />
-      <AnimatePresence mode="wait">
-        <div key={location.pathname} className="h-full">
-          <Transition />
-          {element}
-        </div>
-      </AnimatePresence>
+      {element}
     </Layout>
   );
 }
