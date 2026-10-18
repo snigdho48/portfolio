@@ -1640,7 +1640,7 @@
 }
 
 .journey-mode #experience.journey-station {
-  opacity: var(--journey-op-experience,1)
+  opacity: calc(var(--journey-op-experience,1) * (1 - var(--exp-out,0)))
 }
 
 .journey-mode #skills.journey-station {

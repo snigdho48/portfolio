@@ -33,6 +33,10 @@ export function ndcToLocal(nx: number, ny: number, d: number, out = new THREE.Ve
   return out.set(nx * halfW(d), ny * halfH(d), -d);
 }
 
+/** Skills sun position (NDC at depth SUN_D): right half of the frame, like the reference. */
+export const SUN_NDC: [number, number] = [0.35, 0.15];
+export const SUN_D = 12;
+
 export const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 export const smooth = (x: number) => {
   const t = clamp01(x);

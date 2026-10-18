@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, type RefObject } from "react";
+import { warpAt } from "./warp";
 import { fx, expCam } from "./scrollFx";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
@@ -161,6 +162,8 @@ type Live = {
   age: number;
   travel: number;
   speed: number;
+  /** 0..1 push-in toward the light at the end of the journey. */
+  warp: number;
 };
 const nowS = () => performance.now() / 1000;
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
@@ -171,7 +174,7 @@ const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
  * pure functions of progress, so scrolling back rewinds the whole shot.
  */
 function Driver({ rig, live, rigRef }: { rig: Rig; live: Live; rigRef: RefObject<THREE.Group | null> }) {
-  const { expTargetRef, expIndexRef } = useJourneyProgress();
+  const { expTargetRef, expIndexRef, progressRef } = useJourneyProgress();
   const cam = useRef({
     init: false,
     pos: new THREE.Vector3(),
@@ -212,6 +215,7 @@ function Driver({ rig, live, rigRef }: { rig: Rig; live: Live; rigRef: RefObject
     live.prevU = live.u;
     live.vel += (v - live.vel) * Math.min(1, dt * 8);
     if (Math.abs(live.vel) > 0.004) live.dir += (Math.sign(live.vel) - live.dir) * Math.min(1, dt * 10);
+    live.warp = warpAt(progressRef.current).a;
     live.speed += (live.travel * (0.4 + 0.6 * fx.boost) - live.speed) * Math.min(1, dt * 4);
     sample(rig, live.u, tmp.path);
     live.ball.copy(tmp.path);
@@ -284,6 +288,10 @@ function Driver({ rig, live, rigRef }: { rig: Rig; live: Live; rigRef: RefObject
       expCam.lx = tmp.w.x;
       expCam.ly = tmp.w.y;
       expCam.lz = tmp.w.z;
+      tmp.w.copy(rig.nodePos[2]).applyMatrix4(grp.matrixWorld);
+      expCam.nx = tmp.w.x;
+      expCam.ny = tmp.w.y;
+      expCam.nz = tmp.w.z;
     }
     expCam.fov = c.fov;
     expCam.roll = c.roll;
@@ -499,8 +507,8 @@ function Ball({ rig, live }: { rig: Rig; live: Live }) {
     g.position.copy(live.ball);
     g.position.y += 0.12;
     const pulse = Math.sin(t * 3.1) * 0.5 + 0.5;
-    halo.current?.scale.setScalar(1.5 + pulse * 0.3);
-    core.current?.scale.setScalar(0.4 + pulse * 0.05);
+    halo.current?.scale.setScalar((1.5 + pulse * 0.3) * (1 + 2.5 * live.warp * live.warp));
+    core.current?.scale.setScalar((0.4 + pulse * 0.05) * (1 + 4 * live.warp * live.warp));
     if (ring.current) ring.current.scale.setScalar(1 + ((t * 0.7) % 1) * 0.9);
     const falling = live.fall < 0.999;
     const len = 0.008 + Math.min(0.04, Math.abs(live.vel) * 0.05);
@@ -838,6 +846,7 @@ export default function ExperienceTimeline() {
       age: 0,
       travel: 0,
       speed: 0,
+      warp: 0,
     }),
     [rig],
   );

@@ -29,6 +29,10 @@ export function updateStationOpacity(progress: number) {
     else el.removeAttribute("inert");
   }
 
+  // The Experience copy and HUD fade out as the camera dollies into the light (Experience -> Skills warp).
+  const x = Math.min(1, Math.max(0, (progress - 0.405) / 0.04));
+  track.style.setProperty("--exp-out", (x * x * (3 - 2 * x)).toFixed(3));
+
   // Expose peaks for debug overlays if needed
   void STATION_PEAK;
   void STATION_RANGE;
