@@ -7,6 +7,9 @@
 /** Subtle camera pan toward the Experience ball (station-local units), written by the 3D timeline. */
 export const expPan = { x: 0, y: 0 };
 
+/** Experience journey camera (world coords + fov + roll), written by ExperienceTimeline, applied by CameraRig. */
+export const expCam = { on: 0, px: 0, py: 0, pz: 0, lx: 0, ly: 0, lz: -10, fov: 45, roll: 0 };
+
 export const fx = {
   /** Animation time in seconds (speed-scaled). */
   t: 0,

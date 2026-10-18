@@ -1,4 +1,6 @@
 /** Shared (three-free) state for the pinned Experience sequence. */
+import { EXP_PLATEAU } from "./expTimeline";
+
 export const EXP_EVENT = "journey-exp-index";
 
 export const expScroll = {
@@ -10,7 +12,6 @@ export const expScroll = {
 };
 
 export function goToExpIndex(i: number) {
-  const n = Math.max(1, expScroll.count - 1);
-  const y = expScroll.startY + (Math.min(Math.max(i, 0), n) / n) * expScroll.length;
-  window.scrollTo({ top: y, behavior: "auto" });
+  const q = EXP_PLATEAU[Math.min(Math.max(i, 0), EXP_PLATEAU.length - 1)];
+  window.scrollTo({ top: expScroll.startY + q * expScroll.length, behavior: "auto" });
 }

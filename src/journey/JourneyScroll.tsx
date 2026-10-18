@@ -5,6 +5,7 @@ import { updateStationOpacity } from "./updateStationOpacity";
 import { fx } from "./scrollFx";
 import { experience, projects } from "@/data/portfolio";
 import { EXP_EVENT, expScroll } from "./expScroll";
+import { expIndexAt } from "./expTimeline";
 import { WORK_EVENT, easeProject, workScroll } from "./workScroll";
 
 /**
@@ -60,7 +61,7 @@ export default function JourneyScroll({ children }: { children: ReactNode }) {
           const pin = Math.round(window.innerHeight * 0.8 * count);
           workScroll.length = pin;
           track.style.setProperty("--work-pin", pin + "px");
-          const ep = Math.round(window.innerHeight * 0.85 * expScroll.count);
+          const ep = Math.round(window.innerHeight * 1.6 * expScroll.count);
           expScroll.length = ep;
           track.style.setProperty("--exp-pin", ep + "px");
         };
@@ -116,9 +117,9 @@ export default function JourneyScroll({ children }: { children: ReactNode }) {
               applyProgress(Math.min(1, Math.max(0, p)));
               const f = easeProject((pinned / E) * (count - 1));
               workTargetRef.current = f;
-              const ef = easeProject((pinnedE / E2) * (expScroll.count - 1));
+              const ef = pinnedE / E2;
               expTargetRef.current = ef;
-              const eIdx = Math.round(ef);
+              const eIdx = expIndexAt(ef);
               if (eIdx !== lastExp) {
                 lastExp = eIdx;
                 window.dispatchEvent(new CustomEvent(EXP_EVENT, { detail: eIdx }));

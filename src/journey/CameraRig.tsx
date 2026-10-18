@@ -1,13 +1,15 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { fx, expPan } from "./scrollFx";
+import { fx, expCam } from "./scrollFx";
 import { stationActive } from "./stationVisibility";
 import { cameraAt } from "./stations";
 import { useJourneyProgress } from "./JourneyProgressContext";
 
 const PARALLAX = 0.22;
 const ARRIVE_DIST = 0.25;
+const tmpP = new THREE.Vector3();
+const tmpL = new THREE.Vector3();
 
 /**
  * Glides the camera between station poses (dwell + smoothstep), or flies
@@ -69,11 +71,12 @@ export default function CameraRig() {
     desired.current.x += pointerRef.current.x * PARALLAX;
     desired.current.y += pointerRef.current.y * PARALLAX * 0.6;
     const ea = stationActive(progressRef.current, "experience");
-    if (ea > 0) {
-      desired.current.x += expPan.x * ea;
-      desired.current.y += expPan.y * ea;
-      desiredLook.current.x += expPan.x * ea * 1.6;
-      desiredLook.current.y += expPan.y * ea * 1.6;
+    if (ea > 0 && expCam.on > 0) {
+      const w = ea * expCam.on;
+      tmpP.set(expCam.px, expCam.py, expCam.pz);
+      tmpL.set(expCam.lx, expCam.ly, expCam.lz);
+      desired.current.lerp(tmpP, w);
+      desiredLook.current.lerp(tmpL, w);
     }
     const ct = clock.elapsedTime;
     desired.current.x += Math.sin(ct * 0.31) * 0.09;
@@ -84,6 +87,15 @@ export default function CameraRig() {
     look.current.lerp(desiredLook.current, k);
     camera.position.copy(pos.current);
     camera.lookAt(look.current);
+    // Experience journey: fov change and gentle banking (weighted by station activity)
+    const pc = camera as THREE.PerspectiveCamera;
+    const w2 = stationActive(progressRef.current, "experience") * expCam.on;
+    const fovT = 45 + (expCam.fov - 45) * w2;
+    if (Math.abs(pc.fov - fovT) > 0.01) {
+      pc.fov = fovT;
+      pc.updateProjectionMatrix();
+    }
+    if (w2 > 0.001) camera.rotateZ(expCam.roll * w2);
   });
 
   return null;

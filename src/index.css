@@ -2759,3 +2759,33 @@ html[data-theme-transition=circle]::view-transition-new(root) {
   .site-header__actions .nav-link { padding-inline: .3rem; }
 }
 @media (max-width: 520px) { .site-header__actions > .items-center { display: none; } }
+
+/* ---- Round 11: zig-zag Experience (text opposite the light, dry-leaf dissolve) ---- */
+.exp-pin .work-meta { min-height: 0; }
+.exp-side {
+  position: absolute; top: 0; bottom: 0; display: flex; align-items: center;
+  width: min(31rem, 36vw); pointer-events: none;
+}
+.exp-side--right { right: clamp(1.5rem, 6vw, 6rem); }
+.exp-side--left { left: clamp(1.5rem, 6vw, 6rem); }
+.exp-block { width: 100%; visibility: hidden; text-shadow: 0 1px 14px #05080bcc; }
+.exp-block .xw { display: inline-block; white-space: nowrap; }
+.exp-block .xl { display: inline-block; will-change: transform, opacity; transform-origin: 50% 60%; }
+.exp-company { margin: 0 0 .2rem; }
+.exp-leaves { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+.exp-hud {
+  position: absolute; left: 50%; bottom: 2.4rem; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: .9rem; pointer-events: none;
+}
+.exp-hud .work-dots { margin-top: 0; pointer-events: auto; }
+.exp-hud .work-counter { margin: 0; display: flex; align-items: baseline; gap: .6rem; }
+.exp-hud__label { font-size: .72rem; letter-spacing: .24em; text-transform: uppercase; color: var(--journey-teal); margin-right: .7rem; }
+.exp-hud .journey-scroll-hint { margin: 0; }
+.journey-exp-year { opacity: calc(.14 * var(--lit, 0) + .86 * var(--act, 0)); }
+.exp-block { position: relative; isolation: isolate; }
+.exp-block::before {
+  content: ""; position: absolute; inset: -3.5rem -3rem; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse at center, #060a0dc4 0%, #060a0d8c 42%, #060a0d00 68%);
+}
+
+.exp-hud { text-shadow: 0 1px 10px #05080bcc, 0 0 18px #05080b99; }
