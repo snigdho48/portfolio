@@ -352,20 +352,20 @@ export const projects: Project[] = [
     screenshots: realShots("dbid", "DBID", 4),
   },
   {
-    slug: "authentica",
-    title: "Authentica",
+    slug: "authentiqa",
+    title: "Authentiqa",
     liveUrl: "https://authentiqa.net/",
     purpose:
-      "Authentica - production platform at authentiqa.net. [PLACEHOLDER: expand purpose from product brief when available.]",
+      "Authentiqa - production platform at authentiqa.net. [PLACEHOLDER: expand purpose from product brief when available.]",
     contributions: [
-      "[PLACEHOLDER] Contribution bullet 1 - replace with your Authentica work.",
-      "[PLACEHOLDER] Contribution bullet 2 - replace with your Authentica work.",
-      "[PLACEHOLDER] Contribution bullet 3 - replace with your Authentica work.",
+      "[PLACEHOLDER] Contribution bullet 1 - replace with your Authentiqa work.",
+      "[PLACEHOLDER] Contribution bullet 2 - replace with your Authentiqa work.",
+      "[PLACEHOLDER] Contribution bullet 3 - replace with your Authentiqa work.",
     ],
     stack: ["[PLACEHOLDER]", "Django", "React"],
     nodeIds: ["api", "db", "cloud"],
     contributionsArePlaceholder: true,
-    screenshots: realShots("authentica", "Authentica", 1),
+    screenshots: realShots("authentiqa", "Authentiqa", 1),
   },
   {
     slug: "pr-tools",

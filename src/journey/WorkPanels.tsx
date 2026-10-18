@@ -48,7 +48,9 @@ function buildRibbon(widthK: number, gain: number) {
     const tan = curve.getTangentAt(s);
     const side = new THREE.Vector3().crossVectors(tan, view).normalize();
     const w = (0.018 + 0.05 * Math.pow(s, 1.6)) * widthK * (0.6 + 0.4 * s + 0.6);
-    const a = Math.pow(Math.sin(Math.min(1, s * 1.1) * Math.PI * 0.5), 1.6) * (0.12 + 0.88 * s) * gain;
+    const sst = (x: number) => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
+    // constant-ish brightness along the path, fading smoothly only well beyond both screen edges
+    const a = (0.4 + 0.6 * s) * sst(s / 0.1) * (1 - sst((s - 0.93) / 0.07)) * gain;
     const base = teal.clone().lerp(cyan, 0.4 * (1 - s));
     for (const [off, k] of [
       [-1, 0.0],
@@ -86,7 +88,7 @@ function LightRibbon() {
   useEffect(() => () => Object.values(geoms).forEach((g) => g.dispose()), [geoms]);
 
   const end = useMemo(() => createRibbonCurve().getPointAt(0.985), []);
-  const beam = useMemo(() => ndcToLocal(0.52, -0.82, 7.6), []);
+  const beam = useMemo(() => ndcToLocal(0.42, -0.6, 7.2), []);
   const glow = getRadialGlow();
   const streak = getStreak();
   const mat = (
@@ -103,9 +105,9 @@ function LightRibbon() {
 
   return (
     <group>
-      <mesh geometry={geoms.glow} renderOrder={1}>{mat}</mesh>
-      <mesh geometry={geoms.mid} renderOrder={1}>{mat}</mesh>
-      <mesh geometry={geoms.core} renderOrder={2}>{mat}</mesh>
+      <mesh geometry={geoms.glow} renderOrder={-4}>{mat}</mesh>
+      <mesh geometry={geoms.mid} renderOrder={-4}>{mat}</mesh>
+      <mesh geometry={geoms.core} renderOrder={-3}>{mat}</mesh>
       {/* soft blue beam under the front panel */}
       <mesh position={beam} renderOrder={1}>
         <planeGeometry args={[3.8, 2.6]} />

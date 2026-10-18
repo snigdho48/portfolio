@@ -1,3 +1,4 @@
+import { heroSplit } from "./transitions";
 import { STATION_PEAK, STATION_RANGE, stationActive, type StationKey } from "./stationVisibility";
 
 const STATIONS: Array<{ id: StationKey; htmlId: string }> = [
@@ -32,6 +33,10 @@ export function updateStationOpacity(progress: number) {
   // The Experience copy and HUD fade out as the camera dollies into the light (Experience -> Skills warp).
   const x = Math.min(1, Math.max(0, (progress - 0.405) / 0.04));
   track.style.setProperty("--exp-out", (x * x * (3 - 2 * x)).toFixed(3));
+
+  const split = heroSplit(progress);
+  track.style.setProperty("--hero-split", split.toFixed(3));
+  track.classList.toggle("is-hero-split", split > 0.004);
 
   // Expose peaks for debug overlays if needed
   void STATION_PEAK;

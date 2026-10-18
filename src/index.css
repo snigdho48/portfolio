@@ -2789,3 +2789,16 @@ html[data-theme-transition=circle]::view-transition-new(root) {
 }
 
 .exp-hud { text-shadow: 0 1px 10px #05080bcc, 0 0 18px #05080b99; }
+
+/* ---- Round 15: Hero -> Work, the wordmark parts like a curtain (driven by --hero-split) ---- */
+/* only while the user has scrolled: at progress 0 no mask, spacing or scale is applied */
+#journey-track.is-hero-split .journey-hero__title .kinetic__mask {
+  --g: calc(var(--hero-split, 0) * 52%);
+  letter-spacing: calc(var(--hero-split, 0) * .12em);
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(50% - var(--g)), transparent calc(50% - var(--g) + 1px), transparent calc(50% + var(--g) - 1px), #000 calc(50% + var(--g)), #000 100%);
+  mask-image: linear-gradient(90deg, #000 0, #000 calc(50% - var(--g)), transparent calc(50% - var(--g) + 1px), transparent calc(50% + var(--g) - 1px), #000 calc(50% + var(--g)), #000 100%);
+  transform: scale(calc(1 + var(--hero-split, 0) * .1));
+}
+@media (prefers-reduced-motion: reduce) {
+  #journey-track.is-hero-split .journey-hero__title .kinetic__mask { -webkit-mask-image: none; mask-image: none; transform: none; letter-spacing: normal; }
+}

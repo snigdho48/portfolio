@@ -7,6 +7,8 @@ import SoftPoints from "./SoftPoints";
 import { getRadialGlow } from "./glow";
 import { TEAL, TEAL_DEEP, TEAL_LIGHT, CYAN, ndcToLocal } from "./layout";
 import MotionPoints from "./MotionPoints";
+import { useJourneyProgress } from "./JourneyProgressContext";
+import { acRings } from "./transitions";
 
 const CENTER = ndcToLocal(0, -0.1, 11);
 
@@ -37,15 +39,21 @@ export default function ContactPortal() {
   const core = useRef<THREE.Sprite>(null);
   const metal = useRef<THREE.Mesh>(null);
   const glow = getRadialGlow();
+  const { progressRef } = useJourneyProgress();
 
   useFrame(() => {
     const t = fx.t;
+    const ex = acRings(progressRef.current);
     rings.current.forEach((m, i) => {
       if (!m) return;
+      // About -> Contact: the rings expand from the centre, outer ones a beat later
+      const e = Math.min(1, Math.max(0, (ex * 1.35 - i * 0.07) / 0.65));
+      m.scale.setScalar(Math.max(1e-3, 1 - Math.pow(1 - e, 3)));
       m.rotation.z = t * RINGS[i].s;
       m.rotation.x = RINGS[i].tilt + Math.sin(t * 0.4 + i) * 0.05;
     });
     if (metal.current) {
+      metal.current.scale.setScalar(Math.max(1e-3, 1 - Math.pow(1 - Math.min(1, ex * 2), 3)));
       metal.current.rotation.set(1.1 + Math.sin(t * 0.3) * 0.15, t * 0.35, 0);
     }
     core.current?.scale.setScalar(3.4 + Math.sin(t * 1.4) * 0.15);

@@ -6,6 +6,7 @@ import { stationActive } from "./stationVisibility";
 import { warpAt, WARP_HOP } from "./warp";
 import { STATION_Z, REF_ASPECT, SUN_NDC, SUN_D, halfW, halfH } from "./layout";
 import { cameraAt } from "./stations";
+import { hwBell } from "./transitions";
 import { useJourneyProgress } from "./JourneyProgressContext";
 
 const PARALLAX = 0.22;
@@ -109,6 +110,9 @@ export default function CameraRig() {
         desiredLook.current.lerpVectors(sunW, tgtL, e);
       }
     }
+    // Hero -> Work: the camera dives forward through the particle wave
+    const hwB = hwBell(pNow);
+    if (hwB > 0) desired.current.z -= 5.5 * hwB;
     const ct = clock.elapsedTime;
     desired.current.x += Math.sin(ct * 0.31) * 0.09;
     desired.current.y += Math.cos(ct * 0.23) * 0.05;
@@ -146,6 +150,7 @@ export default function CameraRig() {
         rollT = -0.3 * (1 - e);
       }
     }
+    fovT += 17 * hwB;
     if (Math.abs(pc.fov - fovT) > 0.01) {
       pc.fov = fovT;
       pc.updateProjectionMatrix();

@@ -12,6 +12,7 @@ import { TECH_ICONS } from "./techIcons";
 import { roundedRectGeometry } from "./shapes";
 import { useJourneyProgress } from "./JourneyProgressContext";
 import { warpAt } from "./warp";
+import { saCollapse } from "./transitions";
 
 /**
  * Skills as a solar system: a glass-crystal SUN (corona, glow, flares) and the CV tech tiles as
@@ -26,17 +27,18 @@ const DIST = SUN_D;
 const SUN_R = 1.05;
 /** Orbits are slightly squashed horizontally so the outer ones stay in frame. */
 const SQ = 0.85;
-const R0 = 1.82;
 const W0 = 0.3;
 
 type OrbitDef = { r: number; tau: number; zeta: number };
+/**
+ * Round 15 declutter: three orbits with two planets each, opposite each other, and ONE angular speed for
+ * every planet, so the relative geometry is rigid and never converges (checked numerically across a full turn:
+ * min tile gap ~0.6 and clear of the sun). The moons stay small and close to their parents.
+ */
 const ORBITS: OrbitDef[] = [
-  { r: 1.82, tau: 0.55, zeta: 0.05 },
-  { r: 2.33, tau: 0.52, zeta: -0.08 },
-  { r: 2.84, tau: 0.58, zeta: 0.1 },
-  { r: 3.35, tau: 0.54, zeta: -0.05 },
-  { r: 3.86, tau: 0.57, zeta: 0.08 },
-  { r: 4.37, tau: 0.52, zeta: -0.1 },
+  { r: 2.6, tau: 0.95, zeta: 0.05 },
+  { r: 3.3, tau: 0.95, zeta: -0.08 },
+  { r: 4.3, tau: 0.95, zeta: 0.08 },
 ];
 const orbitQ = ORBITS.map((o) => new THREE.Quaternion().setFromEuler(new THREE.Euler(o.tau, 0, o.zeta)));
 const moonQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.95, 0, 0.3));
@@ -57,24 +59,18 @@ type Item = {
 };
 
 const PLANETS: Item[] = [
-  { key: "python", label: "Python", size: 1.0, orbit: 0, phase: 0.6, glass: true },
-  { key: "django", label: "Django", size: 1.1, orbit: 1, phase: 2.4, glass: true },
-  { key: "react", label: "React", size: 1.1, orbit: 2, phase: 4.3, glass: true, ring: true },
-  { key: "docker", label: "Docker", size: 1.1, orbit: 3, phase: 1.2, glass: true },
-  { key: "aws", label: "AWS", size: 1.1, orbit: 4, phase: 3.3, glass: true },
-  { key: "flutter", label: "Flutter", size: 1.1, orbit: 5, phase: 5.4, glass: true },
-  // minor planets sharing the orbits on the far side
-  { key: "redis", label: "Redis", size: 0.9, orbit: 1, phase: 2.4 + Math.PI },
-  { label: "TypeScript", size: 0.95, orbit: 2, phase: 4.3 + Math.PI },
-  { label: "Node.js", size: 0.95, orbit: 3, phase: 1.2 + Math.PI },
-  { label: "MongoDB", size: 0.95, orbit: 4, phase: 3.3 + Math.PI },
-  { label: "GraphQL", size: 0.95, orbit: 5, phase: 5.4 + Math.PI },
+  { key: "python", label: "Python", size: 1.0, orbit: 0, phase: 0, glass: true },
+  { key: "django", label: "Django", size: 1.1, orbit: 0, phase: Math.PI, glass: true },
+  { key: "react", label: "React", size: 1.1, orbit: 1, phase: 4.24, glass: true, ring: true },
+  { key: "docker", label: "Docker", size: 1.1, orbit: 1, phase: 4.24 + Math.PI, glass: true },
+  { key: "aws", label: "AWS", size: 1.1, orbit: 2, phase: 5.27, glass: true },
+  { key: "flutter", label: "Flutter", size: 1.1, orbit: 2, phase: 5.27 + Math.PI, glass: true },
 ];
 const MOONS: Item[] = [
-  { key: "postgresql", label: "PostgreSQL", size: 0.78, orbit: -1, phase: 0.3, parent: 1, mr: 1.02, mw: 1.5 },
-  { label: "Nginx", size: 0.82, orbit: -1, phase: 2.0, parent: 3, mr: 1.05, mw: 1.2 },
-  { label: "Linux", size: 0.82, orbit: -1, phase: 4.0, parent: 4, mr: 1.05, mw: 1.0 },
-  { label: "Firebase", size: 0.82, orbit: -1, phase: 1.0, parent: 5, mr: 1.05, mw: 0.85 },
+  { key: "postgresql", label: "PostgreSQL", size: 0.65, orbit: -1, phase: 0.3, parent: 1, mr: 0.78, mw: 1.5 },
+  { label: "Nginx", size: 0.65, orbit: -1, phase: 2.0, parent: 3, mr: 0.85, mw: 1.2 },
+  { label: "Linux", size: 0.65, orbit: -1, phase: 4.0, parent: 4, mr: 1.0, mw: 1.0 },
+  { label: "Firebase", size: 0.65, orbit: -1, phase: 1.0, parent: 5, mr: 1.0, mw: 0.85 },
 ];
 const ITEMS: Item[] = [...PLANETS, ...MOONS];
 const N = ITEMS.length;
@@ -83,7 +79,9 @@ const N = ITEMS.length;
 const tv = new THREE.Vector3();
 const qSway = new THREE.Quaternion();
 const eSway = new THREE.Euler();
-const sk = { e: 1 };
+const sk = { e: 1, c: 0 };
+const condR = (c: number) => Math.pow(1 - c, 1.4);
+const condSpin = (c: number) => c * c * 7;
 const smooth01 = (x: number) => {
   const t = Math.min(1, Math.max(0, x));
   return t * t * (3 - 2 * t);
@@ -241,10 +239,10 @@ void main(){
   float arm = pow(0.5 + 0.5 * sin(phase), 5.0);
   float fine = pow(0.5 + 0.5 * sin(a * uArms * 2.0 + 17.0 * r - t * 2.6 + warp * 1.4), 16.0);
   float mask = (1.0 - smoothstep(0.62, 0.98, r)) * smoothstep(0.015, 0.2, r);
-  float hot = exp(-r * r * 20.0);
+  float hot = exp(-r * r * 20.0) * 0.55;
   float halo = exp(-r * 3.2) * 0.22;
-  float I = (arm * 0.8 + fine * 0.7) * mask + hot * 1.1 + halo;
-  vec3 col = mix(vec3(0.1, 0.85, 0.74), vec3(0.88, 1.0, 0.98), clamp(hot * 1.4 + arm * 0.25, 0.0, 1.0));
+  float I = (arm * 0.8 + fine * 0.7) * mask + hot * 0.75 + halo;
+  vec3 col = mix(vec3(0.1, 0.85, 0.74), vec3(0.7, 0.96, 0.9), clamp(hot * 1.4 + arm * 0.25, 0.0, 1.0));
   gl_FragColor = vec4(col * I, min(I, 1.0) * uAlpha * uFade);
 }
 `;
@@ -266,9 +264,9 @@ void main(){
   float d = max(r - r0, 0.0);
   float fall = exp(-d * 5.2);
   float outside = smoothstep(r0 - 0.03, r0 + 0.02, r);
-  float I = (0.28 + rays * 0.55 + flare * exp(-d * 3.0)) * fall * outside * (1.0 - smoothstep(0.82, 1.0, r));
-  I += exp(-d * 11.0) * 0.5 * outside;
-  vec3 col = mix(vec3(0.1, 0.85, 0.74), vec3(0.85, 1.0, 0.97), clamp(exp(-d * 9.0), 0.0, 1.0));
+  float I = (0.28 + rays * 0.55 + flare * 0.6 * exp(-d * 3.0)) * fall * outside * (1.0 - smoothstep(0.82, 1.0, r));
+  I += exp(-d * 11.0) * 0.38 * outside;
+  vec3 col = mix(vec3(0.1, 0.85, 0.74), vec3(0.62, 0.95, 0.88), clamp(exp(-d * 9.0), 0.0, 1.0));
   gl_FragColor = vec4(col * I, min(I, 1.0) * uFade * uK);
 }
 `;
@@ -308,13 +306,15 @@ function Sun() {
     const g = root.current;
     if (!g || !g.parent?.visible) return;
     const t = fx.t;
-    const em = warpAt(progressRef.current).emerge;
+    const pn = progressRef.current;
+    const em = warpAt(pn).emerge;
     const k = smooth01(em / 0.55);
     sk.e = em;
     for (const m of Object.values(mats)) m.uniforms.uTime.value = t;
     mats.shell.uniforms.uK.value = k;
     mats.corona.uniforms.uK.value = k;
-    g.scale.setScalar(0.4 + 0.6 * k);
+    sk.c = saCollapse(pn);
+    g.scale.setScalar((0.4 + 0.6 * k) * (1 - 0.55 * smooth01(sk.c)));
     face.current?.quaternion.copy(state.camera.quaternion);
     const p = Math.sin(t * 1.1);
     halo.current?.scale.setScalar((9 + p * 0.5) * (1 + (1 - k) * 0.6));
@@ -347,13 +347,13 @@ function Sun() {
         <meshPhysicalMaterial color="#7ffff0" roughness={0.02} metalness={0} clearcoat={1} clearcoatRoughness={0.02} envMapIntensity={2.8} transparent opacity={0.14} depthWrite={false} />
       </mesh>
       <sprite ref={heart} scale={[2.3, 2.3, 1]} renderOrder={7}>
-        <spriteMaterial map={glow} color={TEAL_LIGHT} transparent opacity={0.85} depthWrite={false} blending={THREE.AdditiveBlending} fog={false} />
+        <spriteMaterial map={glow} color={TEAL_LIGHT} transparent opacity={0.5} depthWrite={false} blending={THREE.AdditiveBlending} fog={false} />
       </sprite>
       <sprite ref={fl1} scale={[8, 0.55, 1]} renderOrder={7}>
-        <spriteMaterial map={streak} color={TEAL_LIGHT} transparent opacity={0.2} depthWrite={false} blending={THREE.AdditiveBlending} fog={false} />
+        <spriteMaterial map={streak} color={TEAL_LIGHT} transparent opacity={0.12} depthWrite={false} blending={THREE.AdditiveBlending} fog={false} />
       </sprite>
       <sprite ref={fl2} scale={[5.5, 0.4, 1]} renderOrder={7}>
-        <spriteMaterial map={streak} color={CYAN} transparent opacity={0.14} depthWrite={false} blending={THREE.AdditiveBlending} fog={false} />
+        <spriteMaterial map={streak} color={CYAN} transparent opacity={0.08} depthWrite={false} blending={THREE.AdditiveBlending} fog={false} />
       </sprite>
       {/* thin tilted ring hugging the sun */}
       <group rotation={[1.2, 0, -0.32]}>
@@ -376,7 +376,8 @@ function OrbitLines() {
     for (let i = 0; i < ORBITS.length; i++) {
       const g = groups.current[i];
       if (!g || !g.parent?.parent?.visible) continue;
-      g.scale.setScalar(Math.max(1e-4, e));
+      g.scale.setScalar(Math.max(1e-4, e * condR(sk.c)));
+      g.rotation.z = ORBITS[i].zeta + condSpin(sk.c);
       const m = mats.current[i];
       const h = halos.current[i];
       if (m) m.userData.mul = e;
@@ -436,9 +437,8 @@ function dustUpdate(t: number, pos: Float32Array) {
   for (let i = 0; i < DUST; i++) {
     const o = i % ORBITS.length;
     const r = ORBITS[o].r + (((i * 37) % 17) / 17 - 0.5) * 0.5;
-    const w = W0 * Math.pow(R0 / r, 1.5);
-    const th = i * 2.399 + w * t - (1 - e) * 2.4;
-    tv.set(Math.cos(th) * r * SQ, 0, Math.sin(th) * r).applyQuaternion(orbitQ[o]).multiplyScalar(e);
+    const th = i * 2.399 + W0 * t - (1 - e) * 2.4 + condSpin(sk.c);
+    tv.set(Math.cos(th) * r * SQ, 0, Math.sin(th) * r).applyQuaternion(orbitQ[o]).multiplyScalar(e * condR(sk.c));
     const k = i * 3;
     pos[k] = CORE.x + tv.x;
     pos[k + 1] = CORE.y + tv.y;
@@ -478,9 +478,11 @@ function Planets() {
     if (!r || !r.parent?.visible) return;
     const t = fx.t;
     const em = warpAt(progressRef.current).emerge;
+    const cc = saCollapse(progressRef.current);
     sk.e = em;
+    sk.c = cc;
     const eR = 1 - Math.pow(1 - em, 2.2);
-    const eS = smooth01((em - 0.15) / 0.7);
+    const eS = smooth01((em - 0.15) / 0.7) * (1 - 0.85 * smooth01(cc));
     const camQ = state.camera.quaternion;
     for (let i = 0; i < N; i++) {
       const it = ITEMS[i];
@@ -489,16 +491,15 @@ function Planets() {
       const p = P[i];
       if (it.parent === undefined) {
         const o = ORBITS[it.orbit];
-        const w = W0 * Math.pow(R0 / o.r, 1.5);
-        const th = it.phase + w * t - (1 - eR) * 2.4;
-        p.set(Math.cos(th) * o.r * SQ, 0, Math.sin(th) * o.r).applyQuaternion(orbitQ[it.orbit]).multiplyScalar(eR);
+        const th = it.phase + W0 * t - (1 - eR) * 2.4 + condSpin(cc);
+        p.set(Math.cos(th) * o.r * SQ, 0, Math.sin(th) * o.r).applyQuaternion(orbitQ[it.orbit]).multiplyScalar(eR * condR(cc));
         p.x += CORE.x;
         p.y += CORE.y;
         p.z += CORE.z;
       } else {
         const pp = P[it.parent];
         const th = it.phase + (it.mw ?? 1) * t;
-        const mr = (it.mr ?? 1) * eR;
+        const mr = (it.mr ?? 1) * eR * condR(cc);
         tv.set(Math.cos(th) * mr, 0, Math.sin(th) * mr).applyQuaternion(moonQ);
         p.copy(pp).add(tv);
       }

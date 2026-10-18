@@ -27,6 +27,7 @@ import SkillsOrbit from "./SkillsOrbit";
 import AboutCalm from "./AboutCalm";
 import ContactPortal from "./ContactPortal";
 import BloomFlash from "./BloomFlash";
+import TransitionFx from "./TransitionFx";
 
 /**
  * Full journey scene: hero -> work -> experience -> skills -> about -> contact.
@@ -51,6 +52,7 @@ export default function JourneyScene() {
       <AboutCalm />
       <ContactPortal />
       <BloomFlash />
+      <TransitionFx />
 
       <Suspense fallback={null}>
         <EffectComposer multisampling={4}>

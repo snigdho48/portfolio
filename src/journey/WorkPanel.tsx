@@ -9,6 +9,7 @@ import { roundedBorderGeometry, roundedRectGeometry } from "./shapes";
 import { getRadialGlow } from "./glow";
 import { getPanelVignette } from "./panelFx";
 import { TEAL, CYAN } from "./layout";
+import { hwFan, weFlip } from "./transitions";
 
 const RIM_FRONT = new THREE.Color("#c9fff6");
 const RIM_BACK = new THREE.Color(TEAL);
@@ -159,7 +160,8 @@ function makeShotTexture(img: HTMLImageElement, aspect: number, framed = false):
   }
 
   const phone = ia < 0.8;
-  const near = !phone && Math.abs(ia / aspect - 1) <= 0.12;
+  // Round 15: never cover-crop - every desktop capture is contain-fitted with the same padding
+  const near = false as boolean;
 
   if (!near && !phone) {
     // blurred, darkened copy of the capture as a glass backdrop
@@ -278,7 +280,7 @@ export default function WorkPanel({ data }: { data: WorkPanelDatum }) {
     x: 0, y: 0, z: 0, rotY: 0, bright: 1, fade: 1, front: 0, scale: 1,
   });
   const mats = useRef<Record<string, THREE.Material | null>>({});
-  const { startFlyTo, flyActiveRef, workIndexRef, pointerRef } = useJourneyProgress();
+  const { startFlyTo, flyActiveRef, workIndexRef, pointerRef, progressRef } = useJourneyProgress();
   const { width: w, height: h, index } = data;
 
   const geoms = useMemo(
@@ -338,28 +340,47 @@ export default function WorkPanel({ data }: { data: WorkPanelDatum }) {
   useFrame((_, delta) => {
     const g = group.current;
     if (!g || !g.parent?.visible) return;
-    const o = panelPose(index - workIndexRef.current, pose.current);
+    // Hero -> Work: panels arrive ALONG the light path (queued far back on it, sliding forward into place)
+    const flying = flyActiveRef.current;
+    const fan = flying ? 1 : hwFan(progressRef.current);
+    const o = panelPose(index - workIndexRef.current + (1 - fan) * 3.2, pose.current);
     if (o.fade <= 0.002) {
       if (g.visible) g.visible = false;
       return;
     }
     if (!g.visible) g.visible = true;
 
+    // Panels always draw ON TOP of every other Work light/particle/glow (those render at order <= 4): all panel layers
+    // ignore depth and are ordered by renderOrder instead (nearer panel = later), so nothing washes out the images.
+    const base = 100 + (40 + o.z) * 2; // o.z = -depth: nearer panel => larger order
+    for (let j = 0; j < g.children.length; j++) {
+      const c = g.children[j] as THREE.Mesh;
+      c.renderOrder = base + j * 0.1;
+      const mm = c.material as THREE.Material | undefined;
+      if (mm && mm.depthTest) {
+        mm.depthTest = false;
+        mm.needsUpdate = true;
+      }
+    }
+
     hoverMix.current += ((hoverRef.current && o.front > 0.6 ? 1 : 0) - hoverMix.current) * Math.min(1, delta * 8);
     const t = fx.t;
     const bob = Math.sin(t * 0.8 + index * 1.7) * 0.07 * (0.4 + 0.6 * o.front);
     const px = pointerRef.current.x;
     const py = pointerRef.current.y;
+    // Hero -> Work: panels fly in from depth in a fan; Work -> Experience: they flip edge-on and vanish (shards in TransitionFx)
+    const flip = flying ? 0 : weFlip(progressRef.current);
+    const trMul = (1 - Math.min(1, Math.max(0, (flip - 0.72) / 0.28))) * (0.12 + 0.88 * Math.min(1, fan * 2));
     g.position.set(o.x, o.y + bob, o.z);
     g.rotation.set(
       -py * 0.07 * o.front + Math.sin(t * 0.5 + index) * 0.012,
-      o.rotY + px * 0.1 * o.front,
+      o.rotY + px * 0.1 * o.front + flip * 1.45 * (o.x >= 0 ? 1 : -1),
       Math.sin(t * 0.6 + index * 2.1) * 0.012,
     );
-    g.scale.setScalar(o.scale * (1 + hoverMix.current * 0.035));
+    g.scale.setScalar(o.scale * (1 + hoverMix.current * 0.035) * (1 - 0.25 * flip));
 
     const m = mats.current;
-    const fd = o.fade;
+    const fd = o.fade * trMul;
     const b = o.bright;
     const fr = o.front;
     const set = (k: string, mul: number) => {
@@ -421,7 +442,7 @@ export default function WorkPanel({ data }: { data: WorkPanelDatum }) {
         <meshBasicMaterial ref={reg("back")} color="#05080b" transparent opacity={0.96} />
       </mesh>
       <mesh geometry={geoms.screen}>
-        <meshBasicMaterial ref={reg("screen")} map={map} color="#ffffff" toneMapped={false} transparent={phone} depthWrite={!phone} alphaTest={phone ? 0.01 : 0} />
+        <meshBasicMaterial ref={reg("screen")} map={map} color="#ffffff" toneMapped={false} transparent depthWrite={false} alphaTest={phone ? 0.01 : 0} />
       </mesh>
       {/* brushed-metal bezel + glass sheet (env reflections) */}
       <mesh geometry={geoms.bezel} position={[0, 0, 0.003]}>
