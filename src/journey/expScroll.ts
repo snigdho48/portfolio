@@ -1,3 +1,4 @@
+import { scrollNav } from "./scrollNav";
 /** Shared (three-free) state for the pinned Experience sequence. */
 import { EXP_PLATEAU } from "./expTimeline";
 
@@ -13,5 +14,5 @@ export const expScroll = {
 
 export function goToExpIndex(i: number) {
   const q = EXP_PLATEAU[Math.min(Math.max(i, 0), EXP_PLATEAU.length - 1)];
-  window.scrollTo({ top: expScroll.startY + q * expScroll.length, behavior: "auto" });
+  scrollNav.to(expScroll.startY + q * expScroll.length);
 }

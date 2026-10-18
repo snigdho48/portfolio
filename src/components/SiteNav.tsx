@@ -1,3 +1,4 @@
+import { scrollNav } from "@/journey/scrollNav";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
@@ -55,7 +56,7 @@ export default function SiteNav() {
     if (hash) {
       const id = hash.replace("#", "");
       const el = document.getElementById(id);
-      el?.scrollIntoView({ behavior: "smooth" });
+      if (!scrollNav.toSection(id)) el?.scrollIntoView({ behavior: "smooth" });
     }
   }, [hash, pathname]);
 

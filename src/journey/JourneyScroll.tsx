@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from "react";
-import { afterFirstPaint } from "@/utils/heroCapabilities";
+import { afterFirstPaint, isCoarsePointer, prefersReducedMotion } from "@/utils/heroCapabilities";
+import { scrollNav } from "./scrollNav";
 import { useJourneyProgress } from "./JourneyProgressContext";
 import { updateStationOpacity } from "./updateStationOpacity";
 import { fx } from "./scrollFx";
@@ -77,8 +78,14 @@ export default function JourneyScroll({ children }: { children: ReactNode }) {
         let lastExp = -1;
 
         const lenis = new Lenis({
-          duration: 1.15,
+          // Premium inertia: long exponential ease-out, slightly damped wheel,
+          // native touch on coarse pointers (syncTouch stays off).
+          duration: 1.35,
+          easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
           smoothWheel: true,
+          wheelMultiplier: 0.9,
+          touchMultiplier: 1.2,
+          syncTouch: false,
         });
         lenis.on("scroll", ScrollTrigger.update);
         lenis.on("scroll", (e: { velocity: number }) => {
@@ -91,6 +98,48 @@ export default function JourneyScroll({ children }: { children: ReactNode }) {
         gsap.ticker.add(ticker);
         gsap.ticker.lagSmoothing(0);
 
+        // ---- section/station snapping (desktop, motion allowed) ----
+        scrollNav.lenis = lenis as never;
+        const snapOn = !prefersReducedMotion() && !isCoarsePointer();
+        let idleT = 0;
+        let lastY = -1;
+        let pointerDown = false;
+        const onIdle = () => {
+          if (!snapOn || cancelled) return;
+          const y = lenis.scroll;
+          if (pointerDown || lenis.isScrolling || scrollNav.animating || Math.abs(y - lastY) > 1) {
+            lastY = y;
+            arm();
+            return;
+          }
+          const p = scrollNav.nearest(y);
+          const d = Math.abs(p.y - y);
+          if (d > 3) {
+            const dur = Math.min(1, Math.max(0.6, 0.5 + (d / window.innerHeight) * 0.2));
+            scrollNav.to(p.y, { duration: dur });
+          }
+        };
+        const arm = () => {
+          window.clearTimeout(idleT);
+          idleT = window.setTimeout(onIdle, 150);
+        };
+        lenis.on("scroll", arm);
+        const onDown = () => {
+          pointerDown = true;
+          scrollNav.cancel();
+        };
+        const onUp = () => {
+          pointerDown = false;
+          arm();
+        };
+        const onKey = (e: KeyboardEvent) => {
+          if (!e.ctrlKey && !e.metaKey) scrollNav.cancel();
+        };
+        window.addEventListener("pointerdown", onDown, { passive: true });
+        window.addEventListener("pointerup", onUp, { passive: true });
+        window.addEventListener("keydown", onKey);
+        (window as unknown as { __snapPoints?: () => unknown }).__snapPoints = () => scrollNav.points();
+
         const proxy = { t: 0 };
         const tween = gsap.to(proxy, {
           t: 1,
@@ -99,7 +148,7 @@ export default function JourneyScroll({ children }: { children: ReactNode }) {
             trigger: track,
             start: "top top",
             end: "bottom bottom",
-            scrub: 0.65,
+            scrub: 0.35,
             invalidateOnRefresh: true,
             onRefreshInit: measurePin,
             onRefresh: measureStart,
@@ -137,6 +186,11 @@ export default function JourneyScroll({ children }: { children: ReactNode }) {
         destroy = () => {
           tween.scrollTrigger?.kill();
           tween.kill();
+          window.clearTimeout(idleT);
+          window.removeEventListener("pointerdown", onDown);
+          window.removeEventListener("pointerup", onUp);
+          window.removeEventListener("keydown", onKey);
+          scrollNav.lenis = null;
           gsap.ticker.remove(ticker);
           lenis.destroy();
         };

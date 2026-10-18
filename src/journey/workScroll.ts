@@ -1,3 +1,4 @@
+import { scrollNav } from "./scrollNav";
 /** Shared (three-free) state for the pinned Work sequence. */
 export const WORK_EVENT = "journey-work-index";
 
@@ -20,5 +21,5 @@ export function easeProject(f: number): number {
 export function goToWorkIndex(i: number) {
   const n = Math.max(1, workScroll.count - 1);
   const y = workScroll.startY + (Math.min(Math.max(i, 0), n) / n) * workScroll.length;
-  window.scrollTo({ top: y, behavior: "auto" });
+  scrollNav.to(y);
 }

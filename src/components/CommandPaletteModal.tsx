@@ -1,3 +1,4 @@
+import { scrollNav } from "@/journey/scrollNav";
 import { useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Command } from "cmdk";
@@ -33,7 +34,7 @@ export default function CommandPaletteModal({ open, onOpenChange }: Props) {
       navigate(`/#${id}`);
       return;
     }
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    if (!scrollNav.toSection(id)) document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
   const copyEmail = async () => {
