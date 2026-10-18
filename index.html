@@ -62,6 +62,29 @@
         } catch (_) {}
       })();
     </script>
+    <script>
+      (function () {
+        try {
+          var d = document.documentElement;
+          var p = location.pathname;
+          if (p !== "/" && p !== "/index.html") return;
+          if (sessionStorage.getItem("snigdho-loader-seen-v2") === "1") return;
+          var m = function (q) { return window.matchMedia(q).matches; };
+          if (m("(prefers-reduced-motion: reduce)") || m("(pointer: coarse)") || m("(max-width: 900px)")) {
+            d.setAttribute("data-loader", "simple");
+            sessionStorage.setItem("snigdho-loader-seen-v2", "1");
+            return;
+          }
+          d.setAttribute("data-loader", "on");
+          setTimeout(function () {
+            if (d.getAttribute("data-loader") === "on") {
+              d.removeAttribute("data-loader");
+              window.dispatchEvent(new Event("loader:done"));
+            }
+          }, 6500);
+        } catch (_) {}
+      })();
+    </script>
     <title>Snigdho | Software Engineer</title>
   </head>
   <body>

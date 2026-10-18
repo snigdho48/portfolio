@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import { loaderDone } from "@/utils/loaderGate";
 import {
   afterEngagement,
   isCoarsePointer,
@@ -52,6 +53,7 @@ export default function KineticLines({
       void (async () => {
         const gsapMod = await import("gsap");
         const stMod = await import("gsap/ScrollTrigger");
+        await loaderDone();
         if (cancelled || !rootRef.current) return;
 
         const gsap = gsapMod.default;

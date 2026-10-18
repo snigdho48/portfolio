@@ -5,7 +5,7 @@ import {
   prefersReducedMotion,
 } from "@/utils/heroCapabilities";
 
-const Preloader = lazy(() => import("./Preloader"));
+const Loader = lazy(() => import("./Loader"));
 const CustomCursor = lazy(() => import("./CustomCursor"));
 const CommandPalette = lazy(() => import("./CommandPalette"));
 
@@ -27,7 +27,7 @@ export default function DeferredChrome() {
 
   return (
     <Suspense fallback={null}>
-      {!reduce && !coarse && <Preloader />}
+      {!reduce && !coarse && <Loader />}
       {!reduce && !coarse && <CustomCursor />}
       <CommandPalette />
     </Suspense>

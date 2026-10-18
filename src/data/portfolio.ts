@@ -265,7 +265,7 @@ export const projects: Project[] = [
     ],
     stack: ["Django", "MySQL", "REST APIs", "React", "Material UI"],
     nodeIds: ["api", "db", "cloud"],
-    screenshots: realShots("papercable", "Papercable", 3),
+    screenshots: realShots("papercable", "Papercable", 1),
   },
   {
     // Added at the user's explicit request (not on the CV). Facts below come from the public Google Play listing
@@ -286,31 +286,23 @@ export const projects: Project[] = [
     screenshots: realShots("maaty", "Maaty", 6, true),
   },
   {
-    slug: "chobirbaksho",
-    title: "Chobirbaksho",
-    liveUrl: "https://chobirbaksho.com",
+    // Added at the user's request (not on the CV). Only the description comes from the public site
+    // (reachableads.com); role, contributions and stack are [PLACEHOLDER] until verified.
+    slug: "reachable",
+    title: "Reachable",
+    liveUrl: "https://reachableads.com/",
     purpose:
-      "An AI-assisted digital media platform designed to accelerate content production through automated image, video, and audio processing.",
+      "A global, performance-focused demand-side platform for programmatic media buying, delivering premium, brand-safe impressions at efficient CPMs through AI, real-time bidding, and automated optimization (from the Reachable website).",
     contributions: [
-      "Built backend services to support automated content processing workflows.",
-      "Integrated asynchronous task execution using Celery for media processing.",
-      "Implemented real-time communication features using Socket.io.",
-      "Designed backend APIs to manage content assets and processing states.",
-      "Improved content production efficiency through backend automation.",
+      "[PLACEHOLDER] Contribution bullet 1 - replace with your Reachable work.",
+      "[PLACEHOLDER] Contribution bullet 2 - replace with your Reachable work.",
+      "[PLACEHOLDER] Contribution bullet 3 - replace with your Reachable work.",
     ],
-    stack: [
-      "Django",
-      "Celery",
-      "Redis",
-      "Socket.io",
-      "REST APIs",
-      "React",
-      "Tailwind CSS",
-    ],
-    nodeIds: ["api", "worker", "cache", "realtime"],
-    screenshots: placeholderShots("chobirbaksho", "Chobirbaksho"),
-  },
-  {
+    stack: ["[PLACEHOLDER]"],
+    nodeIds: ["api"],
+    contributionsArePlaceholder: true,
+    screenshots: realShots("reachable", "Reachable", 1),
+  },  {
     slug: "omnichannel",
     title: "Omnichannel",
     liveUrl: "https://omni.reachableads.com/",
