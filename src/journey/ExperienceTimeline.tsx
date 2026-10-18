@@ -200,6 +200,7 @@ function Driver({ rig, live, rigRef }: { rig: Rig; live: Live; rigRef: RefObject
     const dt = Math.min(dtRaw, 0.1);
     expIndexRef.current += (expTargetRef.current - expIndexRef.current) * (1 - Math.exp(-dt * 6));
     const q = expIndexRef.current;
+    // eslint-disable-next-line react-hooks/immutability -- three.js objects are mutated per frame by design
     live.q = q;
     const f = expBall(q) - 1;
     live.f = f;
@@ -219,6 +220,7 @@ function Driver({ rig, live, rigRef }: { rig: Rig; live: Live; rigRef: RefObject
     live.speed += (live.travel * (0.4 + 0.6 * fx.boost) - live.speed) * Math.min(1, dt * 4);
     sample(rig, live.u, tmp.path);
     live.ball.copy(tmp.path);
+    // eslint-disable-next-line react-hooks/immutability -- three.js objects are mutated per frame by design
     live.ball.y += FALL_H * (1 - live.fall * live.fall);
 
     const now = nowS();
@@ -238,6 +240,7 @@ function Driver({ rig, live, rigRef }: { rig: Rig; live: Live; rigRef: RefObject
     tangentAt(rig, live.u, tmp.tan);
     tmp.side.crossVectors(tmp.tan, UP).normalize();
     tmp.fp.copy(tmp.path).addScaledVector(tmp.tan, -6.4).addScaledVector(tmp.side, 1.1);
+    // eslint-disable-next-line react-hooks/immutability -- three.js objects are mutated per frame by design
     tmp.fp.y += 2.6;
     tmp.fl.copy(tmp.path).addScaledVector(tmp.tan, 5.2);
     tmp.fl.y += 0.15;
@@ -435,6 +438,7 @@ function Path({ rig, live }: { rig: Rig; live: Live }) {
   useEffect(() => () => geom.dispose(), [geom]);
   useEffect(() => () => mat.dispose(), [mat]);
   useFrame(() => {
+    // eslint-disable-next-line react-hooks/immutability -- three.js objects are mutated per frame by design
     mat.uniforms.uTime.value = fx.t;
     mat.uniforms.uBall.value = live.u;
     mat.uniforms.uHead.value = live.u + 0.4 + 0.12 * live.travel;
@@ -512,6 +516,7 @@ function Ball({ rig, live }: { rig: Rig; live: Live }) {
     if (ring.current) ring.current.scale.setScalar(1 + ((t * 0.7) % 1) * 0.9);
     const falling = live.fall < 0.999;
     const len = 0.008 + Math.min(0.04, Math.abs(live.vel) * 0.05);
+    // eslint-disable-next-line react-hooks/immutability -- three.js objects are mutated per frame by design
     mat.uniforms.uPx.value = gl.getPixelRatio();
     mat.uniforms.uLen.value = falling ? 0.9 : Math.min(1, len / 0.048);
     const attr = geom.getAttribute("position") as THREE.BufferAttribute;
@@ -627,6 +632,7 @@ function Impact({ live }: { live: Live }) {
   useFrame(() => {
     const landed = live.fall > 0.999;
     const a = landed ? live.age : 0;
+    // eslint-disable-next-line react-hooks/immutability -- three.js objects are mutated per frame by design
     mat.uniforms.uAge.value = landed ? a : 1;
     mat.uniforms.uPx.value = gl.getPixelRatio();
     const a2 = clamp01((a - 0.14) / 0.86);
@@ -658,16 +664,28 @@ function Impact({ live }: { live: Live }) {
 
 const LINES = 150;
 /** Streaks flying past the camera on the fast travel segments; strength follows travel x scroll boost. */
+/** Deterministic PRNG so render stays pure (same streak layout every mount). */
+function seededRandom(seed: number) {
+  let t = seed >>> 0;
+  return () => {
+    t = (t + 0x6d2b79f5) >>> 0;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 function SpeedLines({ live }: { live: Live }) {
   const lineRef = useRef<THREE.LineSegments>(null);
   const matRef = useRef<THREE.LineBasicMaterial>(null);
   const params = useMemo(() => {
     const a = new Float32Array(LINES * 4);
+    const rnd = seededRandom(1337);
     for (let i = 0; i < LINES; i++) {
-      a[i * 4] = Math.random() * Math.PI * 2;
-      a[i * 4 + 1] = 1.7 + Math.pow(Math.random(), 0.7) * 7.5;
-      a[i * 4 + 2] = Math.random();
-      a[i * 4 + 3] = 0.6 + Math.random() * 0.8;
+      a[i * 4] = rnd() * Math.PI * 2;
+      a[i * 4 + 1] = 1.7 + Math.pow(rnd(), 0.7) * 7.5;
+      a[i * 4 + 2] = rnd();
+      a[i * 4 + 3] = 0.6 + rnd() * 0.8;
     }
     return a;
   }, []);

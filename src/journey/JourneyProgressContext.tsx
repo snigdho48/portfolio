@@ -16,12 +16,12 @@ export type FlyTarget = {
 };
 
 type JourneyProgressContextValue = {
-  /** Smoothed camera progress 0–1 (read each frame). */
+  /** Smoothed camera progress 0â€“1 (read each frame). */
   progressRef: MutableRefObject<number>;
-  /** Scroll-driven target progress 0–1. */
+  /** Scroll-driven target progress 0â€“1. */
   targetProgressRef: MutableRefObject<number>;
   setTargetProgress: (t: number) => void;
-  /** Pointer NDC for parallax / cursor glow (−1…1). */
+  /** Pointer NDC for parallax / cursor glow (âˆ’1â€¦1). */
   pointerRef: MutableRefObject<{ x: number; y: number }>;
   setPointer: (x: number, y: number) => void;
   /** Active click-to-fly override (null = follow scroll path). */
@@ -30,7 +30,7 @@ type JourneyProgressContextValue = {
   /** Ensures onFlyArrive fires once per flight. */
   flyArrivePendingRef: MutableRefObject<boolean>;
   startFlyTo: (target: FlyTarget) => void;
-  /** Set by Landing — called once camera arrives at a panel. */
+  /** Set by Landing â€” called once camera arrives at a panel. */
   onFlyArriveRef: MutableRefObject<((slug: string) => void) | null>;
   /** Work pin: scroll-driven target index (0..n-1, eased) and its smoothed value. */
   workTargetRef: MutableRefObject<number>;
@@ -103,6 +103,7 @@ export function JourneyProgressProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- shared constants/helpers live next to the component
 export function useJourneyProgress() {
   const ctx = useContext(JourneyProgressContext);
   if (!ctx) {

@@ -7,6 +7,10 @@ import {
 
 const Loader = lazy(() => import("./Loader"));
 const CustomCursor = lazy(() => import("./CustomCursor"));
+const CursorTrail = lazy(() => import("./CursorTrail"));
+const Magnetic = lazy(() => import("./Magnetic"));
+const TitleAssemble = lazy(() => import("./TitleAssemble"));
+const ScrollRing = lazy(() => import("./ScrollRing"));
 const CommandPalette = lazy(() => import("./CommandPalette"));
 
 /**
@@ -29,6 +33,10 @@ export default function DeferredChrome() {
     <Suspense fallback={null}>
       {!reduce && !coarse && <Loader />}
       {!reduce && !coarse && <CustomCursor />}
+      {!reduce && !coarse && <CursorTrail />}
+      {!reduce && !coarse && <Magnetic />}
+      {!reduce && !coarse && <TitleAssemble />}
+      {!coarse && <ScrollRing />}
       <CommandPalette />
     </Suspense>
   );

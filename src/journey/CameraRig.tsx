@@ -1,3 +1,4 @@
+import { skillsFocus } from "./skillsFocus";
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -122,6 +123,15 @@ export default function CameraRig() {
       desired.current.x += Math.sin(ct * 0.17) * 0.5 * sa;
       desired.current.y += Math.sin(ct * 0.13 + 1.0) * 0.28 * sa;
       desiredLook.current.x += Math.sin(ct * 0.11) * 0.4 * sa;
+    }
+    // Skills: click a planet to focus the camera on it (Esc / click-away / leaving the station returns)
+    if (skillsFocus.idx >= 0 && sa < 0.5) skillsFocus.idx = -1;
+    skillsFocus.w += ((skillsFocus.idx >= 0 ? 1 : 0) - skillsFocus.w) * (1 - Math.exp(-delta * 4));
+    if (skillsFocus.w > 0.002) {
+      tgtP.set(skillsFocus.pos.x, skillsFocus.pos.y + 0.05, skillsFocus.pos.z + 5.2);
+      tgtL.copy(skillsFocus.pos);
+      desired.current.lerp(tgtP, skillsFocus.w);
+      desiredLook.current.lerp(tgtL, skillsFocus.w);
     }
 
     const k = 1 - Math.exp(-delta * (wp.active ? 24 : 7));

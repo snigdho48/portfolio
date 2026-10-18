@@ -32,6 +32,7 @@ uniform float uTime;
 uniform float uPx;
 uniform float uFade;
 uniform vec2 uPtr;
+uniform vec2 uPtrR;
 varying float vA;
 varying float vMix;
 
@@ -57,6 +58,11 @@ void main(){
 
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mv;
+  // cursor repel: nearby particles bend away from the pointer (screen space)
+  vec2 nd0 = gl_Position.xy / gl_Position.w;
+  vec2 dd = (nd0 - uPtrR) * vec2(1.0, 0.62);
+  float rk = exp(-dot(dd, dd) * 16.0);
+  gl_Position.xy += normalize(dd + vec2(1e-4)) * rk * 0.1 * gl_Position.w;
   float dist = max(1.0, -mv.z);
 
   float big = step(0.972, aRand.w);
@@ -138,6 +144,7 @@ function WaveField() {
           uPx: { value: 1 },
           uFade: { value: 1 },
           uPtr: { value: new THREE.Vector2() },
+          uPtrR: { value: new THREE.Vector2(9, 9) },
           uColorA: { value: new THREE.Color(TEAL) },
           uColorB: { value: new THREE.Color(CYAN) },
         },
@@ -149,10 +156,12 @@ function WaveField() {
   useEffect(() => () => mat.dispose(), [mat]);
 
   useFrame(() => {
+    // eslint-disable-next-line react-hooks/immutability -- three.js objects are mutated per frame by design
     mat.uniforms.uTime.value = fx.t;
     mat.uniforms.uPx.value = gl.getPixelRatio();
     tmpV.set(pointerRef.current.x, pointerRef.current.y);
     (mat.uniforms.uPtr.value as THREE.Vector2).lerp(tmpV, 0.05);
+    (mat.uniforms.uPtrR.value as THREE.Vector2).lerp(tmpV, 0.35);
   });
 
   return <points geometry={geom} material={mat} frustumCulled={false} />;

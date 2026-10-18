@@ -19,8 +19,27 @@ export default function Contact({ embedded = false }: ContactProps) {
     message: "",
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [hp, setHp] = useState("");
+
+  const validate = () => {
+    const er: Record<string, string> = {};
+    if (form.name.trim().length < 2) er.name = "Please enter your name.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim())) er.email = "Please enter a valid email address.";
+    if (form.subject.trim().length < 3) er.subject = "Add a short subject.";
+    if (form.message.trim().length < 10) er.message = "Tell me a little more (at least 10 characters).";
+    return er;
+  };
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const er = validate();
+    setErrors(er);
+    if (Object.keys(er).length) {
+      setStatus("idle");
+      return;
+    }
+    if (hp) return; // honeypot
     setIsLoading(true);
     setStatus("idle");
 
@@ -34,7 +53,7 @@ export default function Contact({ embedded = false }: ContactProps) {
       | string
       | undefined;
 
-    if (!serviceId || !templateId || !publicKey) {
+    if (!serviceId || !templateId || !publicKey || [serviceId, templateId, publicKey].some((v) => v.startsWith("[PLACEHOLDER"))) {
       setStatus("unconfigured");
       setIsLoading(false);
       return;
@@ -51,6 +70,8 @@ export default function Contact({ embedded = false }: ContactProps) {
       .catch(() => setStatus("error"))
       .finally(() => setIsLoading(false));
   };
+
+  const mailtoHref = `mailto:${siteConfig.email}?subject=${encodeURIComponent(form.subject)}&body=${encodeURIComponent(`${form.message}\n\n${form.name} <${form.email}>`)}`;
 
   const body = (
     <div className={embedded ? "contact-grid contact-grid--embed" : "contact-grid"}>
@@ -91,7 +112,8 @@ export default function Contact({ embedded = false }: ContactProps) {
 
       <form className="contact-form" onSubmit={handleSubmit} noValidate>
         <div className="contact-form__row">
-          <label className="sr-only" htmlFor="contact-name">
+          <div className="field">
+<label className="sr-only" htmlFor="contact-name">
             Name
           </label>
           <input
@@ -102,9 +124,14 @@ export default function Contact({ embedded = false }: ContactProps) {
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             required
+            aria-invalid={!!errors.name}
+            aria-describedby={errors.name ? "err-name" : undefined}
             disabled={isLoading}
           />
-          <label className="sr-only" htmlFor="contact-email">
+{errors.name && (<span id="err-name" className="field-err" role="alert">{errors.name}</span>)}
+</div>
+          <div className="field">
+<label className="sr-only" htmlFor="contact-email">
             Email
           </label>
           <input
@@ -116,10 +143,15 @@ export default function Contact({ embedded = false }: ContactProps) {
             value={form.email}
             onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
             required
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? "err-email" : undefined}
             disabled={isLoading}
           />
+{errors.email && (<span id="err-email" className="field-err" role="alert">{errors.email}</span>)}
+</div>
         </div>
-        <label className="sr-only" htmlFor="contact-subject">
+        <div className="field">
+<label className="sr-only" htmlFor="contact-subject">
           Subject
         </label>
         <input
@@ -130,9 +162,14 @@ export default function Contact({ embedded = false }: ContactProps) {
           value={form.subject}
           onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
           required
+          aria-invalid={!!errors.subject}
+          aria-describedby={errors.subject ? "err-subject" : undefined}
           disabled={isLoading}
         />
-        <label className="sr-only" htmlFor="contact-message">
+{errors.subject && (<span id="err-subject" className="field-err" role="alert">{errors.subject}</span>)}
+</div>
+        <div className="field">
+<label className="sr-only" htmlFor="contact-message">
           Message
         </label>
         <textarea
@@ -143,8 +180,14 @@ export default function Contact({ embedded = false }: ContactProps) {
           value={form.message}
           onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
           required
+          aria-invalid={!!errors.message}
+          aria-describedby={errors.message ? "err-message" : undefined}
           disabled={isLoading}
         />
+{errors.message && (<span id="err-message" className="field-err" role="alert">{errors.message}</span>)}
+</div>
+        <input className="form-hp" tabIndex={-1} autoComplete="off" aria-hidden name="company" value={hp} onChange={(e) => setHp(e.target.value)} />
+        
         <button type="submit" className="btn-primary" disabled={isLoading}>
           {isLoading ? "Sending..." : "Send message"}
         </button>
@@ -161,7 +204,7 @@ export default function Contact({ embedded = false }: ContactProps) {
         )}
         {status === "unconfigured" && (
           <p className="form-status form-status--err" role="alert">
-            Contact form not configured yet. Email{" "}
+            Contact form is not wired yet ([PLACEHOLDER] EmailJS keys). <a href={mailtoHref}>Open this message in your email app</a>, or email{" "}
             <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>.
           </p>
         )}

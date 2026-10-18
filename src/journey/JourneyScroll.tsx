@@ -31,7 +31,13 @@ export default function JourneyScroll({ children }: { children: ReactNode }) {
     let destroy: (() => void) | undefined;
     let cancelled = false;
 
+    let lastStation = -1;
     const applyProgress = (progress: number) => {
+      const st = Math.round(progress * 5);
+      if (st !== lastStation) {
+        if (lastStation !== -1) window.dispatchEvent(new CustomEvent("journey-station", { detail: st }));
+        lastStation = st;
+      }
       setTargetProgress(progress);
       updateStationOpacity(progress);
     };

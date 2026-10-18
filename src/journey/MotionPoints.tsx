@@ -59,6 +59,7 @@ export default function MotionPoints({
     if (hidden(ref.current)) return;
     const a = geo.attributes.position as THREE.BufferAttribute;
     update(fx.t, a.array as Float32Array, count);
+    // eslint-disable-next-line react-hooks/immutability -- three.js objects are mutated per frame by design
     a.needsUpdate = true;
   });
 

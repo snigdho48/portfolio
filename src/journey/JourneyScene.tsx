@@ -8,6 +8,7 @@ function Env() {
   const scene = useThree((s) => s.scene);
   useEffect(() => {
     const tex = makeEnvTexture(gl);
+    // eslint-disable-next-line react-hooks/immutability -- three.js objects are mutated per frame by design
     scene.environment = tex;
     scene.environmentIntensity = 1;
     return () => {

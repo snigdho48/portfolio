@@ -65,6 +65,7 @@ export default function BloomFlash() {
     const on = f > 0.002;
     if (m.visible !== on) m.visible = on;
     if (!on) return;
+    // eslint-disable-next-line react-hooks/immutability -- three.js objects are mutated per frame by design
     mat.uniforms.uF.value = f;
     mat.uniforms.uAspect.value = size.width / size.height;
     mat.uniforms.uTime.value = state.clock.elapsedTime;

@@ -29,7 +29,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 function getInitialTheme(): Theme {
   if (typeof window === "undefined") return "dark";
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  // Honor explicit user toggle only — never follow system light on first visit
+  // Honor explicit user toggle only â€” never follow system light on first visit
   if (stored === "dark" || stored === "light") return stored;
   return "dark";
 }
@@ -82,7 +82,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     root.style.setProperty("--theme-vt-r", `${r}px`);
     root.dataset.themeTransition = "circle";
 
-    // Must call via document — unbound startViewTransition throws Illegal invocation
+    // Must call via document â€” unbound startViewTransition throws Illegal invocation
     if (typeof document.startViewTransition !== "function") {
       delete root.dataset.themeTransition;
       root.style.removeProperty("--theme-vt-x");
@@ -116,6 +116,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- shared constants/helpers live next to the component
 export function useTheme() {
   const ctx = useContext(ThemeContext);
   if (!ctx) {

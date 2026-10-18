@@ -238,7 +238,7 @@ export const projects: Project[] = [
     ],
     stack: ["Python", "Django", "DRF", "MySQL", "React", "HeroUI", "Flutter"],
     nodeIds: ["api", "worker", "db", "cache", "cloud"],
-    screenshots: realShots("braincount", "Braincount", 3),
+    screenshots: realShots("braincount", "Braincount", 6),
   },
   {
     slug: "papercable",
@@ -256,7 +256,7 @@ export const projects: Project[] = [
     ],
     stack: ["Django", "MySQL", "REST APIs", "React", "Material UI"],
     nodeIds: ["api", "db", "cloud"],
-    screenshots: realShots("papercable", "Papercable", 1),
+    screenshots: realShots("papercable", "Papercable", 6),
   },
   {
     // Added at the user's explicit request (not on the CV). Facts below come from the public Google Play listing
@@ -292,7 +292,7 @@ export const projects: Project[] = [
     stack: ["[PLACEHOLDER]"],
     nodeIds: ["api"],
     contributionsArePlaceholder: true,
-    screenshots: realShots("reachable", "Reachable", 1),
+    screenshots: realShots("reachable", "Reachable", 5),
   },  {
     slug: "omnichannel",
     title: "Omnichannel",
@@ -348,23 +348,23 @@ export const projects: Project[] = [
     stack: ["Next.js", "React", "Django", "Django Ninja", "PostgreSQL", "Celery", "Redis"],
     nodeIds: ["api", "db", "cloud"],
     contributionsArePlaceholder: true,
-    screenshots: realShots("authentiqa", "Authentiqa", 1),
+    screenshots: realShots("authentiqa", "Authentiqa", 7),
   },
   {
-    slug: "pr-tools",
-    title: "PR Tools",
+    slug: "eddy",
+    title: "Eddy",
     liveUrl: "https://prtools.reachableads.com",
     purpose:
-      "EDDY by Papercable - an AI-assisted PR writing tool that takes a brand from research to write, media, preview and publish, with Bangla input support.",
+      "Eddy by Papercable - an AI-assisted PR writing tool that takes a brand from research to write, media, preview and publish, with Bangla input support.",
     contributions: [
-      "[PLACEHOLDER] Contribution bullet 1 - replace with your PR Tools work.",
-      "[PLACEHOLDER] Contribution bullet 2 - replace with your PR Tools work.",
-      "[PLACEHOLDER] Contribution bullet 3 - replace with your PR Tools work.",
+      "[PLACEHOLDER] Contribution bullet 1 - replace with your Eddy work.",
+      "[PLACEHOLDER] Contribution bullet 2 - replace with your Eddy work.",
+      "[PLACEHOLDER] Contribution bullet 3 - replace with your Eddy work.",
     ],
     stack: ["Django", "React", "PostgreSQL", "Celery", "Gemini", "pgvector", "Redis", "Channels", "Tailwind CSS"],
     nodeIds: ["api", "db", "worker"],
     contributionsArePlaceholder: true,
-    screenshots: realShots("pr-tools", "PR Tools", 1),
+    screenshots: realShots("eddy", "Eddy", 1),
   },
 ];
 

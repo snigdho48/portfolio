@@ -1,3 +1,5 @@
+import { getSoftShadowTex } from "./softShadow";
+import { isLowPowerDevice } from "@/utils/heroCapabilities";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fx } from "./scrollFx";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
@@ -276,6 +278,13 @@ export default function WorkPanel({ data }: { data: WorkPanelDatum }) {
   const group = useRef<THREE.Group>(null);
   const hoverRef = useRef(false);
   const hoverMix = useRef(0);
+  const lite = isLowPowerDevice();
+  const altTex = useRef<THREE.Texture[]>([]);
+  const altLoading = useRef(false);
+  const cycleT = useRef(0);
+  const cycleIdx = useRef(0);
+  const screenShader = useRef<THREE.WebGLProgramParametersWithUniforms | null>(null);
+  const dofOn = useMemo(() => !isLowPowerDevice(), []);
   const pose = useRef<PanelPose>({
     x: 0, y: 0, z: 0, rotY: 0, bright: 1, fade: 1, front: 0, scale: 1,
   });
@@ -310,6 +319,7 @@ export default function WorkPanel({ data }: { data: WorkPanelDatum }) {
     if (data.isPlaceholder) {
       owned = makePlaceholderTexture(data.title);
       coverFit(owned, w / h);
+       
       setMap(owned);
     } else {
       const im = new Image();
@@ -333,6 +343,20 @@ export default function WorkPanel({ data }: { data: WorkPanelDatum }) {
       owned?.dispose();
     };
   }, [data.coverSrc, data.coverFramed, data.isPlaceholder, data.title, w, h]);
+
+  useEffect(() => {
+    const list = altTex.current;
+    return () => {
+      list.forEach((t) => t.dispose());
+      list.length = 0;
+    };
+  }, []);
+  /** Cheap depth-of-field: bias the mip level of the screenshot by how far back the panel is queued. */
+  const dofCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
+    shader.uniforms.uBias = { value: 0 };
+    shader.fragmentShader = "uniform float uBias;\n" + shader.fragmentShader.replace("#include <map_fragment>", "#ifdef USE_MAP\n vec4 sampledDiffuseColor = texture2D( map, vMapUv, uBias );\n diffuseColor *= sampledDiffuseColor;\n#endif");
+    screenShader.current = shader;
+  };
 
   const glow = getRadialGlow();
   const vig = getPanelVignette();
@@ -364,6 +388,52 @@ export default function WorkPanel({ data }: { data: WorkPanelDatum }) {
     }
 
     hoverMix.current += ((hoverRef.current && o.front > 0.6 ? 1 : 0) - hoverMix.current) * Math.min(1, delta * 8);
+    // Hover: short live preview cycling through the project's other screenshots
+    const hot = hoverMix.current > 0.5;
+    if (hot && data.altSrcs.length && !altLoading.current) {
+      altLoading.current = true;
+      data.altSrcs.forEach((src) => {
+        const im = new Image();
+        im.decoding = "async";
+        im.onload = () => altTex.current.push(makeShotTexture(im, w / h, data.coverFramed));
+        im.src = src;
+      });
+    }
+    const scr = mats.current.screen as THREE.MeshBasicMaterial | null;
+    if (scr && map) {
+      const list = altTex.current;
+      if (hot && list.length) {
+        cycleT.current += delta;
+        if (cycleT.current > 1.1) {
+          cycleT.current = 0;
+          cycleIdx.current = (cycleIdx.current + 1) % (list.length + 1);
+        }
+      } else if (!hot) {
+        cycleIdx.current = 0;
+        cycleT.current = 0;
+      }
+      const want = cycleIdx.current === 0 ? map : (list[cycleIdx.current - 1] ?? map);
+      if (scr.map !== want) {
+        scr.map = want;
+        scr.needsUpdate = true;
+      }
+    }
+    // Single-screenshot projects: hover gives a slow zoom + pan "live preview" of the same capture
+    const cur = scr?.map;
+    if (cur && !data.altSrcs.length && !phoneRef.current) {
+       
+      const base = (cur.userData.panBase ??= { rx: cur.repeat.x, ry: cur.repeat.y, ox: cur.offset.x, oy: cur.offset.y });
+      const k = hoverMix.current;
+      const z = 1 + 0.2 * k;
+      const sx = base.rx - base.rx / z;
+      const sy = base.ry - base.ry / z;
+      const px = 0.5 + 0.5 * Math.sin(fx.t * 0.8);
+      const py = 0.5 + 0.5 * Math.sin(fx.t * 0.55 + 1.3);
+      cur.repeat.set(base.rx / z, base.ry / z);
+      cur.offset.set(base.ox + sx * px, base.oy + sy * py);
+    }
+    const sh = screenShader.current;
+    if (sh) sh.uniforms.uBias.value = dofOn ? (1 - Math.min(1, o.front)) * 2.4 : 0;
     const t = fx.t;
     const bob = Math.sin(t * 0.8 + index * 1.7) * 0.07 * (0.4 + 0.6 * o.front);
     const px = pointerRef.current.x;
@@ -373,8 +443,8 @@ export default function WorkPanel({ data }: { data: WorkPanelDatum }) {
     const trMul = (1 - Math.min(1, Math.max(0, (flip - 0.72) / 0.28))) * (0.12 + 0.88 * Math.min(1, fan * 2));
     g.position.set(o.x, o.y + bob, o.z);
     g.rotation.set(
-      -py * 0.07 * o.front + Math.sin(t * 0.5 + index) * 0.012,
-      o.rotY + px * 0.1 * o.front + flip * 1.45 * (o.x >= 0 ? 1 : -1),
+      -py * 0.07 * o.front * (1 + hoverMix.current * 1.1) + Math.sin(t * 0.5 + index) * 0.012,
+      o.rotY + px * 0.1 * o.front * (1 + hoverMix.current * 1.1) + flip * 1.45 * (o.x >= 0 ? 1 : -1),
       Math.sin(t * 0.6 + index * 2.1) * 0.012,
     );
     g.scale.setScalar(o.scale * (1 + hoverMix.current * 0.035) * (1 - 0.25 * flip));
@@ -438,11 +508,16 @@ export default function WorkPanel({ data }: { data: WorkPanelDatum }) {
       <sprite position={[0, 0, -0.2]} scale={[w * 1.7, h * 1.9, 1]}>
         <spriteMaterial ref={reg("glow")} map={glow} color={CYAN} transparent opacity={0.1} depthWrite={false} blending={THREE.AdditiveBlending} fog={false} />
       </sprite>
+      {lite ? null : (
+        <sprite position={[0, -h * 0.66, -0.12]} scale={[w * 1.15, h * 0.26, 1]}>
+          <spriteMaterial map={getSoftShadowTex()} transparent opacity={0.34} depthWrite={false} fog={false} />
+        </sprite>
+      )}
       <mesh geometry={geoms.back} position={[0, 0, -0.02]}>
         <meshBasicMaterial ref={reg("back")} color="#05080b" transparent opacity={0.96} />
       </mesh>
       <mesh geometry={geoms.screen}>
-        <meshBasicMaterial ref={reg("screen")} map={map} color="#ffffff" toneMapped={false} transparent depthWrite={false} alphaTest={phone ? 0.01 : 0} />
+        <meshBasicMaterial ref={reg("screen")} map={map} color="#ffffff" toneMapped={false} transparent depthWrite={false} alphaTest={phone ? 0.01 : 0} onBeforeCompile={dofCompile} />
       </mesh>
       {/* brushed-metal bezel + glass sheet (env reflections) */}
       <mesh geometry={geoms.bezel} position={[0, 0, 0.003]}>
@@ -452,7 +527,22 @@ export default function WorkPanel({ data }: { data: WorkPanelDatum }) {
       <mesh geometry={geoms.screen} position={[0, 0, 0.008]}>
         <meshBasicMaterial ref={reg("vig")} map={vig} transparent depthWrite={false} toneMapped={false} fog={false} />
       </mesh>
-      {/* rim light + halo */}
+      {lite ? null : (
+        <>
+          {/* env-reflective glass sheet over the screen */}
+          <mesh geometry={geoms.screen} position={[0, 0, 0.011]}>
+            <meshPhysicalMaterial color="#ffffff" roughness={0.05} clearcoat={1} clearcoatRoughness={0.04} envMapIntensity={1.5} transparent opacity={0.05} depthWrite={false} />
+          </mesh>
+          {/* subtle chromatic edge: two faint offset rims */}
+          <mesh geometry={geoms.rim} position={[0.012, 0, 0.018]}>
+            <meshBasicMaterial color="#ff4f9a" transparent opacity={0.16} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} fog={false} />
+          </mesh>
+          <mesh geometry={geoms.rim} position={[-0.012, 0, 0.018]}>
+            <meshBasicMaterial color="#3fd4ff" transparent opacity={0.16} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} fog={false} />
+          </mesh>
+        </>
+      )}
+{/* rim light + halo */}
       <mesh geometry={geoms.rim} position={[0, 0, 0.02]}>
         <meshBasicMaterial ref={reg("rim")} color={TEAL} transparent opacity={1} toneMapped={false} fog={false} />
       </mesh>

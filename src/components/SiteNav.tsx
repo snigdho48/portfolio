@@ -1,3 +1,4 @@
+import SoundToggle from "./SoundToggle";
 import { scrollNav } from "@/journey/scrollNav";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -102,6 +103,7 @@ export default function SiteNav() {
             Ctrl+K
           </kbd>
           <Socials />
+          <SoundToggle />
           <ThemeToggle />
         </div>
       </div>

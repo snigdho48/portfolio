@@ -1,3 +1,4 @@
+import { skillsTip } from "./skillsTip";
 import { useEffect, useRef } from "react";
 import { projects, siteConfig, skillGroups } from "@/data/portfolio";
 
@@ -131,6 +132,7 @@ export default function StationSkills() {
           <span>Scroll to explore</span>
         </div>
       </div>
+      <div className="skills-tip" role="tooltip" ref={(el) => { skillsTip.el = el; }} />
     </section>
   );
 }

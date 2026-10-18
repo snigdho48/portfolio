@@ -118,6 +118,7 @@ void main(){
 
 const sunV = new THREE.Vector3();
 /** Where the light ball sits on screen when the Experience path starts (NDC). Calibrated from screenshots. */
+// eslint-disable-next-line react-refresh/only-export-components -- shared constants/helpers live next to the component
 export const EXP_BALL_NDC: [number, number] = [0.0, 0.36];
 
 export default function TransitionFx() {
@@ -172,6 +173,7 @@ export default function TransitionFx() {
     const on = hw > 0.002 || (sh > 0.002 && p < 0.35) || ir < 0.999 || sa > 0.002 || dn > 0.002 || ac > 0.002;
     if (m.visible !== on) m.visible = on;
     if (!on) return;
+    // eslint-disable-next-line react-hooks/immutability -- three.js objects are mutated per frame by design
     u.uAsp.value = size.width / size.height;
     u.uTime.value = state.clock.elapsedTime;
     u.uHW.value = hw;

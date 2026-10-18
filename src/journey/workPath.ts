@@ -27,6 +27,8 @@ export type WorkPanelDatum = {
   title: string;
   coverSrc: string;
   coverFramed: boolean;
+  /** Extra real screenshots, cycled on hover. */
+  altSrcs: string[];
   isPlaceholder: boolean;
   /** Station-local position. */
   position: THREE.Vector3;
@@ -58,6 +60,7 @@ export function getWorkPanelData(): WorkPanelDatum[] {
       title: project.title,
       coverSrc: cover?.src ?? `/projects/placeholders/${project.slug}-1.svg`,
       coverFramed: !!cover?.framed,
+      altSrcs: project.screenshots.slice(1).filter((x) => !x.isPlaceholder).map((x) => x.src),
       isPlaceholder: cover?.isPlaceholder ?? true,
       position,
       flyPosition: world.clone().add(normal.multiplyScalar(4.4)),

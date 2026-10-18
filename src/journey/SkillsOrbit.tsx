@@ -1,3 +1,7 @@
+import { skillsFocus } from "./skillsFocus";
+import { skillsTip } from "./skillsTip";
+import { getSoftShadowTex } from "./softShadow";
+import { isLowPowerDevice } from "@/utils/heroCapabilities";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -311,6 +315,7 @@ function Sun() {
     const k = smooth01(em / 0.55);
     sk.e = em;
     for (const m of Object.values(mats)) m.uniforms.uTime.value = t;
+    // eslint-disable-next-line react-hooks/immutability -- three.js objects are mutated per frame by design
     mats.shell.uniforms.uK.value = k;
     mats.corona.uniforms.uK.value = k;
     sk.c = saCollapse(pn);
@@ -454,6 +459,28 @@ function Planets() {
   const P = useMemo(() => ITEMS.map(() => new THREE.Vector3()), []);
   const [fontsReady, setFontsReady] = useState(0);
   const glow = getRadialGlow();
+  const hoverIdx = useRef(-1);
+  const tipKey = useRef("");
+  const ptr = useRef({ x: 0, y: 0 });
+  const tipV = useRef(new THREE.Vector3());
+  const hov = useRef<number[]>(ITEMS.map(() => 0));
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") skillsFocus.idx = -1;
+    };
+    const onClick = () => {
+      if (skillsFocus.idx >= 0 && performance.now() - skillsFocus.setAt > 80) skillsFocus.idx = -1;
+    };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("click", onClick);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("click", onClick);
+      skillsFocus.idx = -1;
+      skillsTip.hide();
+      document.body.style.cursor = "";
+    };
+  }, []);
 
   useEffect(() => {
     let live = true;
@@ -475,7 +502,19 @@ function Planets() {
 
   useFrame((state) => {
     const r = root.current;
-    if (!r || !r.parent?.visible) return;
+    if (!r || !r.parent?.visible) {
+      skillsFocus.idx = -1;
+      if (tipKey.current) {
+        tipKey.current = "";
+        skillsTip.hide();
+      }
+      if (hoverIdx.current >= 0) {
+        hoverIdx.current = -1;
+        skillsTip.hide();
+        document.body.style.cursor = "";
+      }
+      return;
+    }
     const t = fx.t;
     const em = warpAt(progressRef.current).emerge;
     const cc = saCollapse(progressRef.current);
@@ -493,6 +532,7 @@ function Planets() {
         const o = ORBITS[it.orbit];
         const th = it.phase + W0 * t - (1 - eR) * 2.4 + condSpin(cc);
         p.set(Math.cos(th) * o.r * SQ, 0, Math.sin(th) * o.r).applyQuaternion(orbitQ[it.orbit]).multiplyScalar(eR * condR(cc));
+        // eslint-disable-next-line react-hooks/immutability -- three.js objects are mutated per frame by design
         p.x += CORE.x;
         p.y += CORE.y;
         p.z += CORE.z;
@@ -505,8 +545,11 @@ function Planets() {
       }
       const persp = Math.pow(Math.min(1.6, Math.max(0.5, -p.z / DIST)), 0.6);
       const sc = Math.max(1e-4, it.size * persp * eS);
+      const hTarget = hoverIdx.current === i || skillsFocus.idx === i ? 1 : 0;
+      hov.current[i] += (hTarget - hov.current[i]) * 0.15;
       g.position.copy(p);
-      g.scale.setScalar(sc);
+      g.scale.setScalar(sc * (1 + hov.current[i] * 0.14));
+      if (skillsFocus.idx === i) g.getWorldPosition(skillsFocus.pos);
       // billboard toward the camera, then a slow turntable-style sway so each tile "rotates" yet stays legible
       const ph = i * 1.7;
       eSway.set(0.18 * Math.sin(t * 0.37 + ph * 1.3), 0.5 * Math.sin(t * 0.45 + ph), 0.07 * Math.sin(t * 0.3 + ph));
@@ -517,6 +560,28 @@ function Planets() {
       for (let j = 0; j < ps.length; j++) {
         const o = ps[j];
         if (o) o.renderOrder = base + j * 0.0001;
+      }
+    }
+    // Tooltip follows the hovered planet (pointer) or, when none, the focused planet (projected); hidden otherwise.
+    const hi = hoverIdx.current;
+    const fi = skillsFocus.idx;
+    const ti = hi >= 0 ? hi : fi;
+    const key = hi >= 0 ? `h${hi}` : fi >= 0 ? `f${fi}` : "";
+    if (key !== tipKey.current) {
+      tipKey.current = key;
+      if (ti >= 0) skillsTip.show(ITEMS[ti].label, ptr.current.x, ptr.current.y);
+      else skillsTip.hide();
+    }
+    if (hi >= 0) {
+      skillsTip.move(ptr.current.x, ptr.current.y);
+    } else if (fi >= 0) {
+      const gf = grp.current[fi];
+      if (gf) {
+        const v = tipV.current;
+        gf.getWorldPosition(v);
+        v.project(state.camera);
+        const rc = state.gl.domElement.getBoundingClientRect();
+        skillsTip.move(rc.left + (v.x * 0.5 + 0.5) * rc.width + 70, rc.top + (-v.y * 0.5 + 0.5) * rc.height - 30);
       }
     }
   });
@@ -532,7 +597,36 @@ function Planets() {
           ref={(el) => {
             grp.current[i] = el;
           }}
+          onPointerOver={(e) => {
+            if (!root.current?.parent?.visible || sk.e < 0.6) return;
+            e.stopPropagation();
+            hoverIdx.current = i;
+            document.body.style.cursor = "pointer";
+            ptr.current.x = e.nativeEvent.clientX;
+            ptr.current.y = e.nativeEvent.clientY;
+          }}
+          onPointerMove={(e) => {
+            if (hoverIdx.current === i) {ptr.current.x = e.nativeEvent.clientX; ptr.current.y = e.nativeEvent.clientY;}
+          }}
+          onPointerOut={() => {
+            if (hoverIdx.current === i) {
+              hoverIdx.current = -1;
+              document.body.style.cursor = "";
+              skillsTip.hide();
+            }
+          }}
+          onClick={(e) => {
+            if (!root.current?.parent?.visible || sk.e < 0.6) return;
+            e.stopPropagation();
+            hoverIdx.current = -1;
+            document.body.style.cursor = "";
+            skillsFocus.idx = skillsFocus.idx === i ? -1 : i;
+            skillsFocus.setAt = performance.now();
+          }}
         >
+          <sprite position={[0, -0.6, -0.08]} scale={[1.55, 0.5, 1]} visible={!isLowPowerDevice()}>
+            <spriteMaterial map={getSoftShadowTex()} transparent opacity={0.3} depthWrite={false} fog={false} />
+          </sprite>
           <sprite ref={reg(i, 0)} position={[0, 0, -0.05]} scale={[2.1, 2.1, 1]}>
             <spriteMaterial map={glow} color={TEAL} transparent opacity={it.parent === undefined ? 0.2 : 0.14} depthWrite={false} blending={THREE.AdditiveBlending} fog={false} />
           </sprite>
