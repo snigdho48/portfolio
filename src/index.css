@@ -3146,3 +3146,14 @@ html[data-loader="on"] body { overflow: hidden; }
 @media (min-width: 901px) and (max-width: 1180px) {
   .work-pin .journey-col, .work-pin .work-meta, .work-pin .work-meta .journey-lead, .work-pin .work-name { max-width: 16.5rem; }
 }
+
+/* Round 21: phone portrait Experience - compact HUD (no scroll hint) and a card that ends clear of the counter */
+@media (max-width: 900px) and (orientation: portrait) {
+  .exp-hud { bottom: calc(1rem + env(safe-area-inset-bottom)); gap: .5rem; }
+  .exp-hud .journey-scroll-hint { display: none; }
+  .exp-side { padding-bottom: calc(8.2rem + env(safe-area-inset-bottom)); }
+}
+/* Round 21: the 44px Work dot hit areas used a -1.2rem bleed that pushed the row 6px past the phone viewport; bleed only into the card padding */
+@media (pointer: coarse) {
+  .work-pin .work-dots { margin-inline: -.75rem; max-width: calc(100% + 1.5rem); }
+}
