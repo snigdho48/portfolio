@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import {
   isCoarsePointer,
-  isLowPowerDevice,
+  isLowTier,
   isNarrowViewport,
   prefersReducedMotion,
 } from "@/utils/heroCapabilities";
@@ -14,7 +14,7 @@ export default function CursorTrail() {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (prefersReducedMotion() || isCoarsePointer() || isNarrowViewport() || isLowPowerDevice()) return;
+    if (prefersReducedMotion() || isCoarsePointer() || isNarrowViewport() || isLowTier()) return;
     const cv = ref.current;
     const c = cv?.getContext("2d");
     if (!cv || !c) return;

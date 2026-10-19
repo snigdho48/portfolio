@@ -18,6 +18,7 @@ function Env() {
   }, [gl, scene]);
   return null;
 }
+import { useState } from "react";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import CameraRig from "./CameraRig";
 import ParticleWave from "./ParticleWave";
@@ -29,6 +30,7 @@ import AboutCalm from "./AboutCalm";
 import ContactPortal from "./ContactPortal";
 import BloomFlash from "./BloomFlash";
 import TransitionFx from "./TransitionFx";
+import { isLowTier, prefersReducedMotion } from "@/utils/heroCapabilities";
 
 /**
  * Full journey scene: hero -> work -> experience -> skills -> about -> contact.
@@ -38,6 +40,8 @@ import TransitionFx from "./TransitionFx";
  * from additive sprites, vertex colours and the bloom pass.
  */
 export default function JourneyScene() {
+  const [low] = useState(isLowTier);
+  const [calm] = useState(prefersReducedMotion); // reduced motion: no full-screen transition shaders
   return (
     <>
       <color attach="background" args={["#0a0c0f"]} />
@@ -52,14 +56,16 @@ export default function JourneyScene() {
       <SkillsOrbit />
       <AboutCalm />
       <ContactPortal />
-      <BloomFlash />
-      <TransitionFx />
+      {!calm && <BloomFlash />}
+      {!calm && <TransitionFx />}
 
-      <Suspense fallback={null}>
-        <EffectComposer multisampling={4}>
-          <Bloom intensity={0.85} luminanceThreshold={0.42} luminanceSmoothing={0.6} mipmapBlur />
-        </EffectComposer>
-      </Suspense>
+      {!low && (
+        <Suspense fallback={null}>
+          <EffectComposer multisampling={4}>
+            <Bloom intensity={0.85} luminanceThreshold={0.62} luminanceSmoothing={0.35} mipmapBlur />
+          </EffectComposer>
+        </Suspense>
+      )}
     </>
   );
 }

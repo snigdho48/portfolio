@@ -1,22 +1,15 @@
-import {
-  isCoarsePointer,
-  isLowPowerDevice,
-  isNarrowViewport,
-  prefersReducedMotion,
-  shouldUseHero3D,
-} from "./heroCapabilities";
+import { hasWebGL } from "./heroCapabilities";
 
-/** True when the scroll-driven 3D journey should run. */
+/** The scroll-driven 3D journey runs everywhere WebGL works (no device / motion / size conditions). */
 export function shouldUseJourney3D(): boolean {
-  return shouldUseHero3D();
+  return hasWebGL();
 }
 
-/** Static layout for reduced-motion, mobile, low-power, or no-WebGL. */
+/**
+ * Last-resort static layout: ONLY when WebGL is truly unavailable (or the canvas fails to
+ * create a context at runtime - see JourneyCanvas / Landing). Everything else gets the journey.
+ */
 export function shouldUseStaticLanding(): boolean {
   if (typeof window === "undefined") return true;
-  if (prefersReducedMotion()) return true;
-  if (isCoarsePointer()) return true;
-  if (isNarrowViewport()) return true;
-  if (isLowPowerDevice()) return true;
   return !shouldUseJourney3D();
 }

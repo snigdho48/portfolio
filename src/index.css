@@ -46,6 +46,7 @@
   body {
     background-color: var(--surface-bg);
     min-height: 100vh;
+    min-height: 100svh;
     color: var(--text-primary);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -56,7 +57,8 @@
   }
 
   #root {
-    min-height: 100vh
+    min-height: 100vh;
+    min-height: 100svh
   }
 
   ::selection {
@@ -157,6 +159,7 @@
 @layer components {  .site-shell {
     background: radial-gradient(1200px 600px at 80% -10%,var(--glow),transparent 60%),radial-gradient(900px 500px at -10% 20%,var(--accent-secondary),transparent 55%),var(--surface-bg);
     min-height: 100vh;
+    min-height: 100svh;
     position: relative
   }
 
@@ -256,6 +259,7 @@
   .page {
     width: 100%;
     min-height: 100vh;
+    min-height: 100svh;
     position: relative
   }
 
@@ -263,6 +267,7 @@
     flex-direction: column;
     width: 100%;
     min-height: 100vh;
+    min-height: 100svh;
     display: flex
   }
 
@@ -387,6 +392,7 @@
   flex-direction: column;
   justify-content: center;
   min-height: calc(100vh - 72px);
+  min-height: calc(100svh - 72px);
   padding-top: 2rem;
   padding-bottom: 3rem;
   display: flex;
@@ -1617,6 +1623,7 @@
   pointer-events: none;
   align-items: center;
   min-height: 100vh;
+  min-height: 100svh;
   padding: clamp(5rem,12vh,8rem) 0;
   display: flex
 }
@@ -2473,11 +2480,13 @@ html[data-theme-transition=circle]::view-transition-new(root) {
   display: block;
   padding: 0;
   min-height: calc(100vh + var(--work-pin, 0px));
+  min-height: calc(100svh + var(--work-pin, 0px));
 }
 .work-pin {
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100svh;
   display: flex;
   align-items: center;
   pointer-events: none;
@@ -2650,6 +2659,7 @@ html[data-theme-transition=circle]::view-transition-new(root) {
   display: block;
   padding: 0;
   min-height: calc(100vh + var(--exp-pin, 0px));
+  min-height: calc(100svh + var(--exp-pin, 0px));
 }
 .exp-pin .journey-col { min-height: 31rem; }
 .exp-year-big {
@@ -2846,6 +2856,7 @@ html[data-loader="on"] body { overflow: hidden; }
   left: 0;
   right: 0;
   height: 100vh;
+  height: 100svh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2987,3 +2998,135 @@ html[data-loader="on"] body { overflow: hidden; }
 @keyframes case-zoom { from { opacity: 0; transform: scale(.86); filter: blur(10px); } to { opacity: 1; transform: scale(1); filter: blur(0); } }
 .case-study { animation: case-zoom .75s cubic-bezier(.2,.8,.2,1) backwards; }
 @media (prefers-reduced-motion: reduce) { .case-study { animation: none; } }
+
+/* ---- Round 17: 3D journey on every device - narrow / touch layout ---- */
+@media (max-width: 900px) {
+  .journey-mode .journey-col { width: auto; margin-inline: 1rem; }
+  .journey-mode .journey-station--work .journey-station__inner,
+  .journey-mode .journey-station--skills .journey-station__inner { padding-inline: 0; }
+
+  /* Work: copy becomes a glass card docked to the bottom; the panels stay visible above it */
+  .work-pin { align-items: flex-end; height: 100vh; height: 100svh; }
+  .work-pin .journey-col {
+    min-height: 0; align-self: flex-end; width: auto; margin: 0 .75rem 3.6rem;
+    padding: .9rem 1rem .8rem; border-radius: 1rem;
+    background: color-mix(in srgb, var(--surface-bg, #070b0f) 78%, transparent);
+    border: 1px solid #f3f6f81f;
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  }
+  .work-pin .journey-eyebrow { display: inline-block; margin: 0 .8rem .35rem 0; font-size: .68rem; }
+  .work-pin .work-counter { display: inline-block; margin: 0 0 .35rem; font-size: .8rem; }
+  .work-name { font-size: clamp(1.5rem, 7vw, 2.1rem); margin-bottom: .45rem; }
+  .work-meta .journey-lead { font-size: .9rem; line-height: 1.45; -webkit-line-clamp: 3; margin-bottom: 0; }
+  .work-chips { margin: .6rem 0 .7rem; gap: .35rem; max-height: 3.9rem; overflow: hidden; }
+  .work-chip { padding: .2rem .6rem; font-size: .7rem; }
+  .work-dots { margin-top: .7rem; flex-wrap: wrap; gap: .55rem; }
+  .work-dot { width: .7rem; height: .7rem; }
+  .work-dot[aria-current="true"] { width: 1.8rem; }
+  .journey-cta { min-height: 44px; }
+
+  /* Experience: full-width glass card at the bottom instead of the zig-zag side column */
+  .exp-side { left: 0 !important; right: 0 !important; width: auto; align-items: flex-end; padding: 0 .75rem 9.6rem; }
+  .exp-block {
+    padding: .9rem 1rem; border-radius: 1rem;
+    background: color-mix(in srgb, var(--surface-bg, #070b0f) 74%, transparent);
+    border: 1px solid #f3f6f81a;
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  }
+  .exp-year-big { font-size: clamp(2.2rem, 11vw, 3.2rem); margin-bottom: .2rem; }
+  .exp-role { margin: .3rem 0 .6rem; font-size: .85rem; }
+
+  /* Skills tiles / stats */
+  .skills-stats { max-width: 100%; margin-top: 1.4rem; }
+  .skills-stats__item { padding: .1rem .45rem; gap: .35rem; }
+  .skills-stats__icon { width: 1.3rem; height: 1.3rem; }
+  .skills-stats dd { font-size: 1.25rem; }
+  .skills-stats dt { font-size: .52rem; letter-spacing: .06em; }
+
+  .cmdk-trigger { bottom: .7rem; right: .7rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .work-swap { animation: none; }
+}
+
+/* Round 17b: the per-letter Experience animation scatters spans past the viewport edge; clip only that column (not an ancestor of any sticky pin) */
+.exp-side { overflow-x: clip; max-width: 100vw; }
+
+/* ---- Round 18: phone layout - use the free space, keep text clear of the 3D ---- */
+@media (max-width: 900px) {
+  /* Skills: heading at the top, the solar system in the middle, stats at the bottom */
+  .journey-mode #skills.journey-station { min-height: 100vh; min-height: 100svh; padding: 4.6rem 0 4.4rem; display: flex; }
+  .journey-mode #skills .journey-col { display: flex; flex-direction: column; width: auto; min-height: calc(100svh - 9rem); margin-inline: 1.1rem; }
+  #skills .journey-eyebrow { margin-bottom: .5rem; font-size: .66rem; }
+  #skills .skills-h2 { font-size: clamp(1.7rem, 8vw, 2.3rem); margin-bottom: .5rem; text-shadow: 0 2px 18px #05080bf0; }
+  #skills .journey-lead { font-size: .88rem; line-height: 1.42; margin-bottom: .4rem; text-shadow: 0 1px 12px #05080bf0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  #skills .skills-link { font-size: .8rem; }
+  #skills .skills-stats { margin-top: auto; background: color-mix(in srgb, var(--surface-bg, #070b0f) 70%, transparent); }
+  #skills .skills-foot { display: none; }
+}
+
+/* ---- Round 19: all-device compatibility - safe areas, tap targets, dynamic viewport units ---- */
+.site-header { padding-top: env(safe-area-inset-top); padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+.cmdk-trigger { bottom: calc(1.1rem + env(safe-area-inset-bottom)); right: calc(1.1rem + env(safe-area-inset-right)); }
+.scroll-ring { bottom: calc(1.2rem + env(safe-area-inset-bottom)); left: calc(1.2rem + env(safe-area-inset-left)); }
+.journey-track { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+@media (max-width: 900px) {
+  .cmdk-trigger { bottom: calc(.7rem + env(safe-area-inset-bottom)); right: calc(.7rem + env(safe-area-inset-right)); }
+  .exp-side { padding-bottom: calc(9.6rem + env(safe-area-inset-bottom)); }
+  .work-pin .journey-col { margin-bottom: calc(3.6rem + env(safe-area-inset-bottom)); }
+  .work-dots { gap: 1rem; }
+  .work-dot::after { inset: -1.15rem -.45rem; }
+}
+@media (pointer: coarse) {
+  .theme-toggle, .scroll-ring { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
+  .cmdk-trigger { height: 44px; min-width: 48px; }
+  .nav-link, .nav-link--cv, .skills-link, .journey-cta { min-height: 44px; display: inline-flex; align-items: center; }
+  .brand-mark { min-height: 44px; display: inline-flex; align-items: center; }
+}
+
+/* Round 19: landscape phones (short viewport) - side cards instead of the bottom-docked portrait cards */
+@media (orientation: landscape) and (max-height: 520px) {
+  .work-pin .journey-col { width: min(46%, 420px); margin: 0 0 .8rem max(1rem, env(safe-area-inset-left)); padding: .6rem .85rem .55rem; align-self: flex-end; }
+  .work-pin .journey-eyebrow { margin: 0 .6rem .2rem 0; }
+  .work-name { font-size: 1.25rem; margin-bottom: .25rem; }
+  .work-meta .journey-lead { font-size: .78rem; line-height: 1.35; -webkit-line-clamp: 2; }
+  .work-chips { display: none; }
+  .work-dots { margin-top: .45rem; }
+  .exp-side { left: auto !important; right: auto !important; width: min(48%, 440px); padding: 0 0 3.6rem; }
+  .exp-side--right { right: max(1rem, env(safe-area-inset-right)) !important; }
+  .exp-side--left { left: max(1rem, env(safe-area-inset-left)) !important; }
+  .exp-block { padding: .5rem .85rem; max-height: calc(100svh - 72px - 4.2rem); overflow: hidden; }
+  .exp-year-big { font-size: 1.7rem; margin-bottom: 0; }
+  .exp-company { font-size: 1.1rem; }
+  .exp-role { margin: .15rem 0 .3rem; font-size: .72rem; }
+  .exp-bullets { font-size: .72rem; line-height: 1.32; }
+  .exp-bullets li { margin: 0 0 .12rem; }
+  .journey-mode .journey-station--about, .journey-mode .journey-station--contact { padding-top: 5rem; }
+  .exp-hud { left: max(1rem, env(safe-area-inset-left)); transform: none; bottom: .7rem; align-items: flex-start; gap: .35rem; }
+  .exp-hud .journey-scroll-hint { display: none; }
+  .exp-side { padding-bottom: 4.6rem; }
+  .exp-block { max-height: calc(100svh - 72px - 5.4rem); }
+}
+
+/* Round 19: short portrait phones (e.g. 360x640): trim the Work card so it does not climb into the panels */
+@media (max-width: 900px) and (orientation: portrait) and (max-height: 700px) {
+  .work-chips { display: none; }
+  .work-meta .journey-lead { -webkit-line-clamp: 2; }
+  .work-name { font-size: 1.4rem; }
+  .exp-year-big { font-size: 2rem; }
+  .exp-bullets { font-size: .8rem; line-height: 1.38; }
+}
+
+/* Round 19: short desktop / laptop viewports (e.g. 1366x768, 1024x768): keep the Experience card clear of the bottom HUD */
+@media (min-width: 901px) and (max-height: 820px) {
+  .exp-side { top: 72px; bottom: 7.2rem; }
+  .exp-year-big { font-size: clamp(2.6rem, 4.6vw, 4rem); margin-bottom: .25rem; }
+  .exp-role { margin: .35rem 0 .6rem; }
+  .exp-bullets { gap: .35rem; font-size: .8rem; line-height: 1.42; }
+  .exp-hud { bottom: 1.6rem; gap: .6rem; }
+}
+
+@media (pointer: coarse) {
+  .nav-link--cv { min-width: 44px; justify-content: center; }
+  .journey-contact a { min-height: 44px; display: inline-flex; align-items: center; }
+}

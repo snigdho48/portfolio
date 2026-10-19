@@ -57,6 +57,8 @@ export default function JourneyScroll({ children }: { children: ReactNode }) {
         const gsap = gsapMod.default;
         const { ScrollTrigger } = stMod;
         gsap.registerPlugin(ScrollTrigger);
+        // iOS/Android URL bars resize the viewport while scrolling: do not re-measure on those (small, vertical-only) resizes
+        ScrollTrigger.config({ ignoreMobileResize: true });
 
         const track = document.getElementById("journey-track");
         if (!track) return;
@@ -64,19 +66,64 @@ export default function JourneyScroll({ children }: { children: ReactNode }) {
         const count = projects.length;
         expScroll.count = experience.length;
         workScroll.count = count;
+        let stableH = window.innerHeight;
+        let stableW = window.innerWidth;
         const measurePin = () => {
-          const pin = Math.round(window.innerHeight * 0.8 * count);
+          // keep the pin lengths steady while the mobile URL bar shows/hides (<150px height-only change)
+          if (Math.abs(window.innerHeight - stableH) > 150 || window.innerWidth !== stableW) {
+            stableH = window.innerHeight;
+            stableW = window.innerWidth;
+          }
+          const pin = Math.round(stableH * 0.8 * count);
           workScroll.length = pin;
           track.style.setProperty("--work-pin", pin + "px");
-          const ep = Math.round(window.innerHeight * 1.6 * expScroll.count);
+          const ep = Math.round(stableH * 1.6 * expScroll.count);
           expScroll.length = ep;
           track.style.setProperty("--exp-pin", ep + "px");
+        };
+        // Scroll (excluding the two pins) at which each station's section reaches the viewport top, and how long it
+        // holds there (a section taller than the viewport, e.g. About/Contact on a short landscape phone, keeps its
+        // station while its text scrolls). Keeps the 3D in step with the real DOM layout at any viewport size.
+        const STATION_IDS = ["hero", "work", "experience", "skills", "about", "contact"];
+        let anchors: Array<[number, number, number]> = [];
+        const measureAnchors = (trackStart: number) => {
+          const vh = window.innerHeight;
+          const out: Array<[number, number, number]> = [];
+          let pinsBefore = 0;
+          STATION_IDS.forEach((id, k) => {
+            const el = id === "hero" ? track : document.getElementById(id);
+            if (!el) return;
+            const top = id === "hero" ? trackStart : el.getBoundingClientRect().top + window.scrollY;
+            const pin = id === "work" ? workScroll.length : id === "experience" ? expScroll.length : 0;
+            const h = id === "hero" ? (document.getElementById("hero")?.offsetHeight ?? vh) : el.offsetHeight;
+            const a = id === "hero" ? 0 : Math.max(0, top - trackStart - pinsBefore);
+            out.push([a, a + Math.max(0, h - pin - vh), k * 0.2]);
+            if (id === "work") pinsBefore += workScroll.length;
+            if (id === "experience") pinsBefore += expScroll.length;
+          });
+          anchors = out;
+        };
+        const progressAt = (u: number) => {
+          const A = anchors;
+          if (A.length < 2) return -1;
+          if (u <= A[0][1]) return A[0][2];
+          for (let i = 1; i < A.length; i++) {
+            if (u <= A[i][0]) {
+              const pb = A[i - 1][1];
+              const span = Math.max(1, A[i][0] - pb);
+              return A[i - 1][2] + (A[i][2] - A[i - 1][2]) * Math.min(1, Math.max(0, (u - pb) / span));
+            }
+            if (u <= A[i][1]) return A[i][2];
+          }
+          return A[A.length - 1][2];
         };
         const measureStart = () => {
           const w = document.getElementById("work");
           if (w) workScroll.startY = w.getBoundingClientRect().top + window.scrollY;
           const x = document.getElementById("experience");
           if (x) expScroll.startY = x.getBoundingClientRect().top + window.scrollY;
+          const trackTop = track.getBoundingClientRect().top + window.scrollY;
+          measureAnchors(trackTop);
         };
         measurePin();
         measureStart();
@@ -88,7 +135,7 @@ export default function JourneyScroll({ children }: { children: ReactNode }) {
           // native touch on coarse pointers (syncTouch stays off).
           duration: 1.35,
           easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-          smoothWheel: true,
+          smoothWheel: !prefersReducedMotion(),
           wheelMultiplier: 0.9,
           touchMultiplier: 1.2,
           syncTouch: false,
@@ -168,7 +215,8 @@ export default function JourneyScroll({ children }: { children: ReactNode }) {
               const e0 = expScroll.startY - self.start;
               const pinnedE = Math.min(E2, Math.max(0, y - e0));
               const base = range - E - E2;
-              const p = base > 0 ? (y - pinned - pinnedE) / base : self.progress;
+              const pa = progressAt(y - pinned - pinnedE);
+              const p = pa >= 0 ? pa : base > 0 ? (y - pinned - pinnedE) / base : self.progress;
               applyProgress(Math.min(1, Math.max(0, p)));
               const f = easeProject((pinned / E) * (count - 1));
               workTargetRef.current = f;

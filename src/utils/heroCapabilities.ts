@@ -39,23 +39,34 @@ export function isLowPowerDevice(): boolean {
   return false;
 }
 
-export function shouldUseHero3D(): boolean {
-  if (typeof window === "undefined") return false;
-  if (prefersReducedMotion()) return false;
-  if (isCoarsePointer()) return false;
-  if (isNarrowViewport()) return false;
-  if (isLowPowerDevice()) return false;
+let glChecked: boolean | null = null;
 
+/** True when a WebGL context can be created (the only hard requirement for the 3D journey). */
+export function hasWebGL(): boolean {
+  if (typeof window === "undefined") return false;
+  if (glChecked !== null) return glChecked;
   try {
     const canvas = document.createElement("canvas");
     const gl =
-      canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-    return Boolean(gl);
+      canvas.getContext("webgl2") ||
+      canvas.getContext("webgl") ||
+      canvas.getContext("experimental-webgl");
+    glChecked = Boolean(gl);
   } catch {
-    return false;
+    glChecked = false;
   }
+  return glChecked;
 }
 
+/** The 3D journey is used everywhere WebGL exists - capability heuristics only pick a quality tier. */
+export function shouldUseHero3D(): boolean {
+  return hasWebGL();
+}
+
+/** Lower quality tier (DPR 1, no bloom / DOF / glass / shadows / trail). Never disables the 3D scene. */
+export function isLowTier(): boolean {
+  return isLowPowerDevice() || isCoarsePointer() || isNarrowViewport();
+}
 /** After first paint + idle — for non-critical enhancements. */
 export function afterFirstPaint(cb: () => void): () => void {
   let cancelled = false;

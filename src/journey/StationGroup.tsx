@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { useJourneyProgress } from "./JourneyProgressContext";
 import { stationActive, type StationKey } from "./stationVisibility";
 import { STATION_Z, REF_ASPECT } from "./layout";
+import { stationScale, portraitAmount, stationShift } from "./portrait";
 
 type Fadeable = {
   mat: THREE.Material;
@@ -30,6 +31,7 @@ export default function StationGroup({
   const frame = useRef(0);
   const last = useRef(-1);
   const size = useThree((s) => s.size);
+  const shiftRef = useRef<[number, number]>([0, 0]);
 
   useFrame(() => {
     const g = ref.current;
@@ -43,8 +45,16 @@ export default function StationGroup({
       return;
     }
 
-    const k = Math.min(1, size.width / size.height / REF_ASPECT);
-    g.scale.setScalar(k);
+    const aspect = size.width / size.height;
+    if (id === "hero") {
+      // portrait hero: keep the particle wave filling the whole screen (squeeze x to the width, stretch y to the height)
+      const kr = Math.min(1, aspect / REF_ASPECT);
+      g.scale.set(Math.min(1, kr * 1.3), 1 + 2.0 * portraitAmount(aspect), 1);
+    } else {
+      g.scale.setScalar(stationScale(id, aspect));
+    }
+    const sh = stationShift(id, aspect, shiftRef.current);
+    g.position.set(sh[0], sh[1], STATION_Z[id]);
 
     if (frame.current++ % 90 === 0 || list.current.length === 0) {
       const mats = new Set<THREE.Material>();

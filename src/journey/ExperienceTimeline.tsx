@@ -9,6 +9,7 @@ import { getRadialGlow } from "./glow";
 import { TEAL, CYAN, TEAL_LIGHT, halfW } from "./layout";
 import { useJourneyProgress } from "./JourneyProgressContext";
 import { stationActive } from "./stationVisibility";
+import { portraitAmount } from "./portrait";
 import MotionPoints from "./MotionPoints";
 import { expBall, expFall, expImpact, expZoom, expTravel, EXP_SIDES } from "./expTimeline";
 
@@ -196,8 +197,9 @@ function Driver({ rig, live, rigRef }: { rig: Rig; live: Live; rigRef: RefObject
     }),
     [],
   );
-  useFrame((_, dtRaw) => {
+  useFrame(({ size }, dtRaw) => {
     const dt = Math.min(dtRaw, 0.1);
+    const pa = portraitAmount(size.width / size.height);
     expIndexRef.current += (expTargetRef.current - expIndexRef.current) * (1 - Math.exp(-dt * 6));
     const q = expIndexRef.current;
     // eslint-disable-next-line react-hooks/immutability -- three.js objects are mutated per frame by design
@@ -249,11 +251,11 @@ function Driver({ rig, live, rigRef }: { rig: Rig; live: Live; rigRef: RefObject
     for (let k = 0; k < 3; k++) {
       if (z[k] < 0.0005) continue;
       const side = EXP_SIDES[k] === "right" ? 1 : -1; // node sits on the opposite screen side
-      const shift = side * 0.4 * halfW(5.4);
+      const shift = side * 0.4 * halfW(5.4) * (1 - 0.85 * pa);
       tmp.np.copy(rig.nodePos[k]);
       tmp.nl.copy(tmp.np);
       tmp.np.y += 0.9;
-      tmp.np.z += 5.4;
+      tmp.np.z += 5.4 - 1.7 * pa;
       tmp.nl.x += shift;
       tmp.nl.y += 0.1;
       tmp.fp.lerp(tmp.np, z[k]);
@@ -298,6 +300,7 @@ function Driver({ rig, live, rigRef }: { rig: Rig; live: Live; rigRef: RefObject
     }
     expCam.fov = c.fov;
     expCam.roll = c.roll;
+    expCam.zs = zs;
     expCam.on = 1;
   });
   return null;

@@ -3,7 +3,8 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useJourneyProgress } from "./JourneyProgressContext";
 import { warpAt, WARP_HOP } from "./warp";
-import { STATION_Z, REF_ASPECT, SUN_NDC, SUN_D, halfW, halfH } from "./layout";
+import { STATION_Z, SUN_NDC, SUN_D, halfW, halfH } from "./layout";
+import { stationScale, stationShift } from "./portrait";
 
 const sunV = new THREE.Vector3();
 
@@ -72,8 +73,9 @@ export default function BloomFlash() {
     // before the hop the light is the ball (screen centre); after it the iris closes onto the sun
     const pn = progressRef.current;
     if (pn >= WARP_HOP) {
-      const kS = Math.min(1, size.width / size.height / REF_ASPECT);
-      sunV.set(SUN_NDC[0] * halfW(SUN_D) * kS, SUN_NDC[1] * halfH(SUN_D) * kS, STATION_Z.skills - SUN_D * kS).project(state.camera);
+      const kS = stationScale("skills", size.width / size.height);
+        const shS = stationShift("skills", size.width / size.height);
+      sunV.set(SUN_NDC[0] * halfW(SUN_D) * kS + shS[0], SUN_NDC[1] * halfH(SUN_D) * kS + shS[1], STATION_Z.skills - SUN_D * kS).project(state.camera);
       mat.uniforms.uC.value.set(sunV.x, sunV.y);
     } else mat.uniforms.uC.value.set(0, 0);
   });

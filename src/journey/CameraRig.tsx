@@ -5,7 +5,8 @@ import * as THREE from "three";
 import { fx, expCam } from "./scrollFx";
 import { stationActive } from "./stationVisibility";
 import { warpAt, WARP_HOP } from "./warp";
-import { STATION_Z, REF_ASPECT, SUN_NDC, SUN_D, halfW, halfH } from "./layout";
+import { STATION_Z, SUN_NDC, SUN_D, halfW, halfH } from "./layout";
+import { portraitAmount, stationScale, stationShift } from "./portrait";
 import { cameraAt } from "./stations";
 import { hwBell } from "./transitions";
 import { useJourneyProgress } from "./JourneyProgressContext";
@@ -42,6 +43,7 @@ export default function CameraRig() {
   const desired = useRef(new THREE.Vector3());
   const desiredLook = useRef(new THREE.Vector3());
   const initialized = useRef(false);
+  const viewOff = useRef(0);
 
   useFrame(({ camera, clock, size }, rawDelta) => {
     const delta = Math.min(rawDelta, 0.25);
@@ -101,8 +103,9 @@ export default function CameraRig() {
         desired.current.lerp(tgtP, wp.a);
         desiredLook.current.lerp(tgtL, wp.a);
       } else {
-        const kS = Math.min(1, size.width / size.height / REF_ASPECT);
-        sunW.set(SUN_NDC[0] * halfW(SUN_D) * kS, SUN_NDC[1] * halfH(SUN_D) * kS, STATION_Z.skills - SUN_D * kS);
+        const kS = stationScale("skills", size.width / size.height);
+        const shS = stationShift("skills", size.width / size.height);
+        sunW.set(SUN_NDC[0] * halfW(SUN_D) * kS + shS[0], SUN_NDC[1] * halfH(SUN_D) * kS + shS[1], STATION_Z.skills - SUN_D * kS);
         const e = easeIO(wp.b);
         tgtP.set(sunW.x, sunW.y + 0.1, sunW.z + 2.7 * kS);
         desired.current.set(px, py, STATION_Z.skills);
@@ -164,6 +167,13 @@ export default function CameraRig() {
     if (Math.abs(pc.fov - fovT) > 0.01) {
       pc.fov = fovT;
       pc.updateProjectionMatrix();
+    }
+    // phone portrait: lift the Experience scene into the free area above the bottom text card
+    const vo = portraitAmount(size.width / size.height) * w2 * (0.2 - 0.13 * Math.min(1, expCam.zs)) * size.height;
+    if (Math.abs(vo - viewOff.current) > 0.5) {
+      viewOff.current = vo;
+      if (vo > 0.5) pc.setViewOffset(size.width, size.height, 0, vo, size.width, size.height);
+      else pc.clearViewOffset();
     }
     if (Math.abs(rollT) > 0.0005) camera.rotateZ(rollT);
   });

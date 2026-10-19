@@ -1,7 +1,7 @@
 import { skillsFocus } from "./skillsFocus";
 import { skillsTip } from "./skillsTip";
 import { getSoftShadowTex } from "./softShadow";
-import { isLowPowerDevice } from "@/utils/heroCapabilities";
+import { isLowTier } from "@/utils/heroCapabilities";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -624,7 +624,7 @@ function Planets() {
             skillsFocus.setAt = performance.now();
           }}
         >
-          <sprite position={[0, -0.6, -0.08]} scale={[1.55, 0.5, 1]} visible={!isLowPowerDevice()}>
+          <sprite position={[0, -0.6, -0.08]} scale={[1.55, 0.5, 1]} visible={!isLowTier()}>
             <spriteMaterial map={getSoftShadowTex()} transparent opacity={0.3} depthWrite={false} fog={false} />
           </sprite>
           <sprite ref={reg(i, 0)} position={[0, 0, -0.05]} scale={[2.1, 2.1, 1]}>

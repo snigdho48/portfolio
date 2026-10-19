@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta
       name="description"
       content="MD. Atiquzzaman Snigdho — Software Engineer specializing in Django, React, Python, Full-Stack and Cloud systems."
@@ -72,8 +72,12 @@
           var p = location.pathname;
           if (p !== "/" && p !== "/index.html") return;
           if (sessionStorage.getItem("snigdho-loader-seen-v2") === "1") return;
-          var m = function (q) { return window.matchMedia(q).matches; };
-          if (m("(prefers-reduced-motion: reduce)") || m("(pointer: coarse)") || m("(max-width: 900px)")) {
+          var gl = false;
+          try {
+            var cv = document.createElement("canvas");
+            gl = !!(cv.getContext("webgl2") || cv.getContext("webgl") || cv.getContext("experimental-webgl"));
+          } catch (_) {}
+          if (!gl) {
             d.setAttribute("data-loader", "simple");
             sessionStorage.setItem("snigdho-loader-seen-v2", "1");
             return;

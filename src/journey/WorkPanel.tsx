@@ -1,5 +1,5 @@
 import { getSoftShadowTex } from "./softShadow";
-import { isLowPowerDevice } from "@/utils/heroCapabilities";
+import { isCoarsePointer, isLowTier } from "@/utils/heroCapabilities";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fx } from "./scrollFx";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
@@ -277,14 +277,15 @@ function coverFit(tex: THREE.Texture, aspect: number) {
 export default function WorkPanel({ data }: { data: WorkPanelDatum }) {
   const group = useRef<THREE.Group>(null);
   const hoverRef = useRef(false);
+  const TOUCH = useMemo(() => isCoarsePointer(), []); // no hover on touch: the front panel previews on its own
   const hoverMix = useRef(0);
-  const lite = isLowPowerDevice();
+  const lite = isLowTier();
   const altTex = useRef<THREE.Texture[]>([]);
   const altLoading = useRef(false);
   const cycleT = useRef(0);
   const cycleIdx = useRef(0);
   const screenShader = useRef<THREE.WebGLProgramParametersWithUniforms | null>(null);
-  const dofOn = useMemo(() => !isLowPowerDevice(), []);
+  const dofOn = useMemo(() => !isLowTier(), []);
   const pose = useRef<PanelPose>({
     x: 0, y: 0, z: 0, rotY: 0, bright: 1, fade: 1, front: 0, scale: 1,
   });
@@ -387,7 +388,7 @@ export default function WorkPanel({ data }: { data: WorkPanelDatum }) {
       }
     }
 
-    hoverMix.current += ((hoverRef.current && o.front > 0.6 ? 1 : 0) - hoverMix.current) * Math.min(1, delta * 8);
+    hoverMix.current += (((hoverRef.current || TOUCH) && o.front > 0.6 ? 1 : 0) - hoverMix.current) * Math.min(1, delta * 8);
     // Hover: short live preview cycling through the project's other screenshots
     const hot = hoverMix.current > 0.5;
     if (hot && data.altSrcs.length && !altLoading.current) {
@@ -466,7 +467,7 @@ export default function WorkPanel({ data }: { data: WorkPanelDatum }) {
     set("halo", fd * (0.25 + 0.5 * fr) * b * nf);
     set("bezel", fd * (0.45 + 0.55 * b) * nf);
     const sm = m.screen as THREE.MeshBasicMaterial | null;
-    if (sm) sm.color.setScalar(phoneRef.current ? 0.62 + 0.3 * b : 0.2 + 0.34 * b);
+    if (sm) sm.color.setScalar(phoneRef.current ? 0.7 + 0.3 * b : 0.18 + 0.64 * b);
     const rm = m.rim as THREE.MeshBasicMaterial | null;
     if (rm) rm.color.copy(RIM_BACK).lerp(RIM_FRONT, fr);
   });
@@ -477,7 +478,12 @@ export default function WorkPanel({ data }: { data: WorkPanelDatum }) {
     e.stopPropagation();
     if (flyActiveRef.current) return;
     if (pose.current.front > 0.6) {
-      startFlyTo({ slug: data.slug, position: data.flyPosition, lookAt: data.lookAt });
+      // world-space target from the live transform, so the station's portrait scale/shift is respected
+      const wp = g.getWorldPosition(new THREE.Vector3());
+      const wq = g.getWorldQuaternion(new THREE.Quaternion());
+      const ws = g.getWorldScale(new THREE.Vector3()).x;
+      const nrm = new THREE.Vector3(0, 0, 1).applyQuaternion(wq);
+      startFlyTo({ slug: data.slug, position: wp.clone().addScaledVector(nrm, 4.4 * Math.max(0.5, ws)), lookAt: wp });
     } else {
       goToWorkIndex(index);
     }
@@ -531,7 +537,7 @@ export default function WorkPanel({ data }: { data: WorkPanelDatum }) {
         <>
           {/* env-reflective glass sheet over the screen */}
           <mesh geometry={geoms.screen} position={[0, 0, 0.011]}>
-            <meshPhysicalMaterial color="#ffffff" roughness={0.05} clearcoat={1} clearcoatRoughness={0.04} envMapIntensity={1.5} transparent opacity={0.05} depthWrite={false} />
+            <meshPhysicalMaterial color="#ffffff" roughness={0.05} clearcoat={1} clearcoatRoughness={0.04} envMapIntensity={0.7} transparent opacity={0.03} depthWrite={false} />
           </mesh>
           {/* subtle chromatic edge: two faint offset rims */}
           <mesh geometry={geoms.rim} position={[0.012, 0, 0.018]}>

@@ -31,12 +31,12 @@ export default function DeferredChrome() {
 
   return (
     <Suspense fallback={null}>
-      {!reduce && !coarse && <Loader />}
+      <Loader />
       {!reduce && !coarse && <CustomCursor />}
       {!reduce && !coarse && <CursorTrail />}
       {!reduce && !coarse && <Magnetic />}
-      {!reduce && !coarse && <TitleAssemble />}
-      {!coarse && <ScrollRing />}
+      {!reduce && <TitleAssemble />}
+      <ScrollRing />
       <CommandPalette />
     </Suspense>
   );

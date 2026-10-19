@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useJourneyProgress } from "./JourneyProgressContext";
-import { STATION_Z, REF_ASPECT, SUN_NDC, SUN_D, halfW, halfH } from "./layout";
+import { STATION_Z, SUN_NDC, SUN_D, halfW, halfH } from "./layout";
+import { stationScale, stationShift } from "./portrait";
 import { hwBell, weFlip, weShard, weIris, saCollapse, saDawn, acShutter } from "./transitions";
 
 const VERT = /* glsl */ `
@@ -184,8 +185,9 @@ export default function TransitionFx() {
     u.uDawn.value = dn;
     u.uAC.value = ac;
     if (p < 0.665 && sa > 0) {
-      const kS = Math.min(1, size.width / size.height / REF_ASPECT);
-      sunV.set(SUN_NDC[0] * halfW(SUN_D) * kS, SUN_NDC[1] * halfH(SUN_D) * kS, STATION_Z.skills - SUN_D * kS).project(state.camera);
+      const kS = stationScale("skills", size.width / size.height);
+        const shS = stationShift("skills", size.width / size.height);
+      sunV.set(SUN_NDC[0] * halfW(SUN_D) * kS + shS[0], SUN_NDC[1] * halfH(SUN_D) * kS + shS[1], STATION_Z.skills - SUN_D * kS).project(state.camera);
       sunLast.current.set(sunV.x, sunV.y);
     }
     // follow the real sun while it is visible, then settle toward the calm lower-centre where the About dawn rises

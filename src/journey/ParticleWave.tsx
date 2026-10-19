@@ -4,6 +4,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useJourneyProgress } from "./JourneyProgressContext";
 import { TEAL, CYAN } from "./layout";
+import { portraitAmount } from "./portrait";
 import { mulberry32 } from "./rng";
 import StationGroup from "./StationGroup";
 import SoftPoints from "./SoftPoints";
@@ -31,6 +32,7 @@ attribute vec4 aRand;
 uniform float uTime;
 uniform float uPx;
 uniform float uFade;
+uniform float uP;
 uniform vec2 uPtr;
 uniform vec2 uPtrR;
 varying float vA;
@@ -78,8 +80,8 @@ void main(){
   float keep = step(aRand.y * 0.95 + 0.03, base * 1.25);
   vec2 ndc = gl_Position.xy / gl_Position.w;
   // clean zone behind the headline block / upper middle
-  float zone = (1.0 - smoothstep(0.34, 0.66, abs(ndc.x))) * (1.0 - smoothstep(0.34, 0.6, abs(ndc.y - 0.1)));
-  float topClean = 1.0 - smoothstep(0.1, 0.6, ndc.y) * (1.0 - sideB);
+  float zone = (1.0 - smoothstep(0.34, 0.66, abs(ndc.x))) * (1.0 - smoothstep(mix(0.34, 0.12, uP), mix(0.6, 0.3, uP), abs(ndc.y - mix(0.1, -0.08, uP))));
+  float topClean = 1.0 - smoothstep(0.1, 0.6, ndc.y) * (1.0 - sideB) * (1.0 - 0.97 * uP);
   float twinkle = 0.6 + 0.4 * sin(uTime * (0.5 + aRand.w * 1.3) + aRand.w * 60.0);
   vA = 2.6 * uFade * keep * base * (1.0 - 0.85 * zone) * topClean * (0.5 + 0.9 * aRand.w) * twinkle * exp(-dist * 0.016);
   vMix = aRand.z;
@@ -102,6 +104,7 @@ void main(){
 function WaveField() {
   const gl = useThree((s) => s.gl);
   const { pointerRef } = useJourneyProgress();
+  const size = useThree((s) => s.size);
 
   const geom = useMemo(() => {
     const r = mulberry32(11);
@@ -143,6 +146,7 @@ function WaveField() {
           uTime: { value: 0 },
           uPx: { value: 1 },
           uFade: { value: 1 },
+          uP: { value: 0 },
           uPtr: { value: new THREE.Vector2() },
           uPtrR: { value: new THREE.Vector2(9, 9) },
           uColorA: { value: new THREE.Color(TEAL) },
@@ -159,6 +163,7 @@ function WaveField() {
     // eslint-disable-next-line react-hooks/immutability -- three.js objects are mutated per frame by design
     mat.uniforms.uTime.value = fx.t;
     mat.uniforms.uPx.value = gl.getPixelRatio();
+    mat.uniforms.uP.value = portraitAmount(size.width / size.height);
     tmpV.set(pointerRef.current.x, pointerRef.current.y);
     (mat.uniforms.uPtr.value as THREE.Vector2).lerp(tmpV, 0.05);
     (mat.uniforms.uPtrR.value as THREE.Vector2).lerp(tmpV, 0.35);
@@ -186,7 +191,7 @@ export default function ParticleWave() {
       <SoftPoints count={420} box={[1, 1, 1]} gen={flank(1)} size={0.03} sizeVar={0.03} opacity={0.9} depthFade={0.012} seed={71} drift={0.8} />
       <SoftPoints count={420} box={[1, 1, 1]} gen={flank(-1)} size={0.03} sizeVar={0.03} opacity={0.9} depthFade={0.012} seed={72} drift={0.8} />
       <Parallax k={0.9}>
-        <SoftPoints count={140} box={[18, 7, 5]} center={[0, 2.2, 3]} size={0.05} sizeVar={0.04} opacity={0.5} depthFade={0.01} seed={9} drift={1.4} />
+        <SoftPoints count={200} box={[18, 7, 5]} center={[0, 2.2, 3]} size={0.05} sizeVar={0.04} opacity={0.55} depthFade={0.01} seed={9} drift={1.4} />
       </Parallax>
       <Parallax k={0.25}>
       <SoftPoints
