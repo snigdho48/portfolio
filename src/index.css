@@ -3130,3 +3130,19 @@ html[data-loader="on"] body { overflow: hidden; }
   .nav-link--cv { min-width: 44px; justify-content: center; }
   .journey-contact a { min-height: 44px; display: inline-flex; align-items: center; }
 }
+
+/* Round 20: Work/Experience dots - 44px touch targets (visible dot unchanged), translucent phone cards so the 3D backdrop shows */
+@media (pointer: coarse) {
+  .work-dots { gap: 0; margin-inline: -1.2rem; justify-content: center; }
+  .work-dot, .work-dot[aria-current="true"] { box-sizing: content-box; padding: 16.5px; background-clip: content-box; height: .7rem; min-height: .7rem; }
+  .work-dot { width: .7rem; }
+  .work-dot::after { display: none; }
+}
+@media (max-width: 900px) {
+  .journey-mode .journey-glass-card { background: #090e1280; -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); }
+  #contact .journey-station__inner.journey-contact { background: color-mix(in srgb, #090e12 58%, transparent); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  .work-pin .journey-col, .work-pin .work-meta, .work-pin .work-meta .journey-lead, .work-pin .work-name { max-width: 16.5rem; }
+}

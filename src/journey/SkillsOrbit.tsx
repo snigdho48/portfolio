@@ -500,6 +500,8 @@ function Planets() {
   const face = useMemo(() => roundedRectGeometry(1, 1, 0.24), []);
   useEffect(() => () => face.dispose(), [face]);
 
+  const fadeV = useMemo(() => new THREE.Vector3(), []);
+  const tbRef = useRef({ v: 0, n: 0 });
   useFrame((state) => {
     const r = root.current;
     if (!r || !r.parent?.visible) {
@@ -523,6 +525,13 @@ function Planets() {
     const eR = 1 - Math.pow(1 - em, 2.2);
     const eS = smooth01((em - 0.15) / 0.7) * (1 - 0.85 * smooth01(cc));
     const camQ = state.camera.quaternion;
+    const tbs = tbRef.current;
+    if (state.size.width / state.size.height < 0.9) {
+      if (++tbs.n % 20 === 1) {
+        const l = document.querySelector("#skills .skills-link") ?? document.querySelector("#skills .journey-lead");
+        tbs.v = l ? l.getBoundingClientRect().bottom + 8 : 0;
+      }
+    } else tbs.v = 0;
     for (let i = 0; i < N; i++) {
       const it = ITEMS[i];
       const g = grp.current[i];
@@ -548,7 +557,15 @@ function Planets() {
       const hTarget = hoverIdx.current === i || skillsFocus.idx === i ? 1 : 0;
       hov.current[i] += (hTarget - hov.current[i]) * 0.15;
       g.position.copy(p);
-      g.scale.setScalar(sc * (1 + hov.current[i] * 0.14));
+      let tf = 1;
+      if (tbs.v > 0) {
+        // phone: tiles dissolve (shrink) as they drift up under the heading / lead copy
+        g.getWorldPosition(fadeV);
+        fadeV.project(state.camera);
+        const py = (1 - fadeV.y) * 0.5 * state.size.height;
+        tf = smooth01((py - (tbs.v - 60)) / 90);
+      }
+      g.scale.setScalar(Math.max(1e-4, sc * tf * (1 + hov.current[i] * 0.14)));
       if (skillsFocus.idx === i) g.getWorldPosition(skillsFocus.pos);
       // billboard toward the camera, then a slow turntable-style sway so each tile "rotates" yet stays legible
       const ph = i * 1.7;

@@ -4,12 +4,34 @@ import SoftPoints from "./SoftPoints";
 import { getRadialGlow } from "./glow";
 import { TEAL_DEEP, CYAN } from "./layout";
 import WireAccent from "./WireAccent";
+import { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import { portraitAmount } from "./portrait";
+
+/** Phone / portrait only: a clearer knot, glow and drifting dust that show through the translucent text cards. */
+function PortraitBackdrop() {
+  const g = useRef<THREE.Group>(null);
+  const glow = getRadialGlow();
+  useFrame(({ size }) => {
+    if (g.current) g.current.visible = portraitAmount(size.width / size.height) > 0.35;
+  });
+  return (
+    <group ref={g} visible={false}>
+      <sprite position={[0, 0.5, -9]} scale={[16, 22, 1]}>
+        <spriteMaterial map={glow} color={TEAL_DEEP} transparent opacity={0.3} depthWrite={false} blending={THREE.AdditiveBlending} fog={false} />
+      </sprite>
+      <WireAccent kind="knot" position={[3.4, -1.2, -9]} radius={1.5} opacity={0.14} speed={0.1} glowScale={6} />
+      <SoftPoints count={520} box={[11, 20, 7]} center={[0, 0.5, -8]} size={0.034} sizeVar={0.03} opacity={0.85} drift={0.45} depthFade={0.01} seed={67} colors={[CYAN, TEAL_DEEP]} />
+    </group>
+  );
+}
 
 /** About: calm, slow, faint particle field with a soft atmospheric glow. */
 export default function AboutCalm() {
   const glow = getRadialGlow();
   return (
     <StationGroup id="about">
+      <PortraitBackdrop />
       <sprite position={[3, -1, -16]} scale={[20, 12, 1]}>
         <spriteMaterial map={glow} color={TEAL_DEEP} transparent opacity={0.16} depthWrite={false} blending={THREE.AdditiveBlending} fog={false} />
       </sprite>

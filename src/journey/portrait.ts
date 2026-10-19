@@ -14,11 +14,14 @@ export const portraitAmount = (aspect: number) => clamp01((REF_ASPECT - aspect) 
  */
 export const fitK = (aspect: number) => (aspect >= REF_ASPECT ? 1 : Math.pow(aspect / REF_ASPECT, 0.5));
 
+/** 0..1 for narrow landscape windows (4:3 tablets): the fixed-width copy column eats a larger share of the width. */
+const narrowQ = (aspect: number) => clamp01((REF_ASPECT - aspect) / 0.6) * clamp01((aspect - 0.9) / 0.3);
+
 /** fitK with a per-station trim (the Work chain and the Skills system read better a little smaller on a phone). */
 export function stationScale(id: StationKey, aspect: number) {
   const k = fitK(aspect);
   const p = portraitAmount(aspect);
-  if (id === "work") return k * (1 - 0.2 * p);
+  if (id === "work") return k * (1 - 0.2 * p) * (1 - 0.26 * narrowQ(aspect));
   if (id === "skills") return k * (1 - 0.34 * p);
   return k;
 }
@@ -41,8 +44,12 @@ export function stationShift(id: StationKey, aspect: number, out: [number, numbe
       break;
     case "work": {
       pathAt(8, _w);
-      out[0] = -_w.nx * halfW(8) * k * p;
-      out[1] = (0.13 - _w.ny * k) * halfH(8) * p;
+      // portrait weight fades out towards square/landscape windows
+      const pw = p * clamp01((1.2 - aspect) / 0.4);
+      out[0] = -_w.nx * halfW(8) * k * pw;
+      out[1] = (0.13 - _w.ny * k) * halfH(8) * pw;
+      // narrow landscape (tablet 4:3): push the panel chain right, clear of the fixed-width copy column
+      out[0] += narrowQ(aspect) * 0.95 * halfW(8);
       break;
     }
     case "skills": {

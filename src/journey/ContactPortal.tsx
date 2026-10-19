@@ -9,6 +9,7 @@ import { TEAL, TEAL_DEEP, TEAL_LIGHT, CYAN, ndcToLocal } from "./layout";
 import MotionPoints from "./MotionPoints";
 import { useJourneyProgress } from "./JourneyProgressContext";
 import { acRings } from "./transitions";
+import { portraitAmount } from "./portrait";
 
 const CENTER = ndcToLocal(0, -0.1, 11);
 
@@ -41,8 +42,10 @@ export default function ContactPortal() {
   const glow = getRadialGlow();
   const { progressRef } = useJourneyProgress();
 
-  useFrame(() => {
+  const portalG = useRef<THREE.Group>(null);
+  useFrame(({ size }) => {
     const t = fx.t;
+    portalG.current?.scale.setScalar(1 + 0.3 * portraitAmount(size.width / size.height));
     const ex = acRings(progressRef.current);
     rings.current.forEach((m, i) => {
       if (!m) return;
@@ -61,7 +64,7 @@ export default function ContactPortal() {
 
   return (
     <StationGroup id="contact">
-      <group position={CENTER}>
+      <group ref={portalG} position={CENTER}>
         <sprite scale={[9, 9, 1]}>
           <spriteMaterial map={glow} color={TEAL} transparent opacity={0.4} depthWrite={false} blending={THREE.AdditiveBlending} fog={false} />
         </sprite>
